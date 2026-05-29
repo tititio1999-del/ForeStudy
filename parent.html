@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForeStudy — Родитель</title>
+    <style>
+        :root {
+            --bg: #f5f7fb; --surface: #fff; --text: #1a1a2e; --text-secondary: #555;
+            --accent: #2e7d32; --accent-hover: #1b5e20; --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08); --header-bg: #ffffffcc; --backdrop: blur(10px);
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a; --surface: #1e293b; --text: #e2e8f0; --text-secondary: #94a3b8;
+            --accent: #4caf50; --accent-hover: #388e3c; --border: #334155;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4); --header-bg: #1e293bcc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        .header { position: sticky; top: 0; z-index: 50; background: var(--header-bg); backdrop-filter: var(--backdrop); border-bottom: 1px solid var(--border); box-shadow: var(--shadow); padding: 0.5rem 1.5rem; }
+        .top-line { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+        .logo { font-weight: 700; font-size: 1.8rem; color: #2e7d32; display: flex; align-items: center; gap: 0.5rem; }
+        [data-theme="dark"] .logo { color: #4caf50; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+        .status-dot.online { background: #10b981; } .status-dot.offline { background: #ef4444; }
+        .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text); }
+        .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; flex: 1; width: 100%; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; background: var(--accent); color: white; font-size: 0.9rem; transition: background 0.2s; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn.outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        .btn.outline:hover { background: var(--accent); color: white; }
+        .btn.small { padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+        .section-title { font-size: 1.3rem; font-weight: 700; margin: 1.5rem 0 1rem; }
+        .empty-message { color: var(--text-secondary); font-style: italic; padding: 2rem 0; text-align: center; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 1rem; }
+        .modal-content { background: var(--surface); padding: 2rem; border-radius: 16px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 0.5rem; right: 0.8rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+        
+        /* Стили для календаря статистики по датам */
+        .date-stats-student { margin-bottom: 1rem; }
+        .date-stats-student .student-header { cursor: default; padding: 0.8rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; user-select: none; }
+        .date-stats-student .student-content { padding: 1.5rem; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: var(--surface); }
+        .calendar-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; justify-content: center; }
+        .calendar-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer; color: var(--text); font-size: 1rem; }
+        .calendar-nav button:hover { background: var(--bg); }
+        .calendar-nav span { font-weight: 600; font-size: 1.1rem; min-width: 180px; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 0.5rem; }
+        .calendar-grid .day-header { text-align: center; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); padding: 0.3rem 0; }
+        .calendar-grid .day-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; position: relative; transition: transform 0.15s, box-shadow 0.15s; min-height: 36px; }
+        .calendar-grid .day-cell:hover { transform: scale(1.1); box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 2; }
+        .calendar-grid .day-cell.other-month { opacity: 0.3; }
+        .calendar-grid .day-cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .calendar-grid .day-cell .day-number { position: relative; z-index: 1; text-shadow: 0 0 3px rgba(255,255,255,0.8); }
+        [data-theme="dark"] .calendar-grid .day-cell .day-number { text-shadow: 0 0 3px rgba(0,0,0,0.8); }
+        .calendar-grid .day-cell.level-0 { background: #fef3c7; color: #92400e; }
+        .calendar-grid .day-cell.level-1 { background: #fde68a; color: #92400e; }
+        .calendar-grid .day-cell.level-2 { background: #fcd34d; color: #78350f; }
+        .calendar-grid .day-cell.level-3 { background: #bbf7d0; color: #166534; }
+        .calendar-grid .day-cell.level-4 { background: #86efac; color: #14532d; }
+        .calendar-grid .day-cell.level-5 { background: #4ade80; color: #052e16; }
+        .calendar-grid .day-cell.level-6 { background: #22c55e; color: #052e16; }
+        .calendar-grid .day-cell.level-7 { background: #16a34a; color: #f0fdf4; }
+        .calendar-grid .day-cell.level-8 { background: #15803d; color: #f0fdf4; }
+        .calendar-grid .day-cell.no-data { background: transparent; color: var(--text-secondary); cursor: default; }
+        .calendar-grid .day-cell.no-data:hover { transform: none; box-shadow: none; }
+        /* Боковая панель статистики */
+        .day-stats-panel { position: fixed; top: 0; right: 0; width: 320px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 200; padding: 1.5rem; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
+        .day-stats-panel.open { transform: translateX(0); }
+        .day-stats-panel .panel-close { position: absolute; top: 0.8rem; right: 0.8rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+        .day-stats-panel h3 { margin-bottom: 1rem; }
+        .day-stats-panel .stat-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .day-stats-panel .stat-row .label { color: var(--text-secondary); }
+        .day-stats-panel .stat-row .value { font-weight: 600; }
+        .day-stats-panel .stat-row .value.correct { color: #16a34a; }
+        .day-stats-panel .stat-row .value.wrong { color: #dc2626; }
+        /* Tooltip */
+        .day-cell-tooltip { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.8rem; box-shadow: var(--shadow); font-size: 0.85rem; z-index: 300; pointer-events: none; white-space: nowrap; }
+        .day-cell-tooltip .tooltip-title { font-weight: 600; margin-bottom: 0.2rem; }
+        .day-cell-tooltip .tooltip-row { display: flex; gap: 0.5rem; }
+        .day-cell-tooltip .tooltip-row .correct { color: #16a34a; }
+        .day-cell-tooltip .tooltip-row .wrong { color: #dc2626; }
+        /* Поле нормы (только для чтения) */
+        .norm-display { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .norm-display label { font-size: 0.9rem; color: var(--text-secondary); }
+        .norm-display span { font-weight: 600; color: var(--accent); }
+        /* Сообщение об ошибке */
+        .error-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 2rem; }
+        .error-container h2 { color: #ef4444; margin-bottom: 1rem; }
+        .error-container p { color: var(--text-secondary); max-width: 400px; line-height: 1.6; }
+        .error-container .btn { margin-top: 1.5rem; }
+        /* Загрузка */
+        .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 600px) { .header { padding: 0.5rem 1rem; } .logo { font-size: 1.4rem; } .container { padding: 0 0.5rem; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="top-line">
+            <div class="logo"><span class="status-dot" id="connectionDot"></span> ForeStudy · Родитель</div>
+            <button id="themeToggle" class="theme-toggle">🌙</button>
+        </div>
+    </header>
+    <main class="container" id="app">
+        <div class="loading-container" id="loadingScreen">
+            <div class="spinner"></div>
+            <p>Проверка ссылки...</p>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        if (!window.firebaseConfig) { alert('config.js не загружен'); throw new Error('Missing config'); }
+        const app = initializeApp(window.firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth();
+        await signInAnonymously(auth);
+        console.log('✅ Родитель аутентифицирован анонимно');
+
+        const connectionDot = document.getElementById('connectionDot');
+        onValue(ref(db, '.info/connected'), snap => { connectionDot.className = 'status-dot ' + (snap.val() === true ? 'online' : 'offline'); });
+
+        const appContainer = document.getElementById('app');
+        const loadingScreen = document.getElementById('loadingScreen');
+
+        // ===================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====================
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ===================== ПОЛУЧЕНИЕ ТОКЕНА ИЗ URL =====================
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            loadingScreen.style.display = 'none';
+            appContainer.innerHTML = `
+                <div class="error-container">
+                    <h2>🔗 Ссылка недействительна</h2>
+                    <p>В ссылке отсутствует токен доступа. Пожалуйста, проверьте ссылку или обратитесь к учителю.</p>
+                </div>
+            `;
+            throw new Error('Token not found in URL');
+        }
+
+        // ===================== ПРОВЕРКА ТОКЕНА =====================
+        let linkData = null;
+        let teacherId = null;
+        let studentData = null;
+        let studentId = null;
+        let studentName = '';
+
+        try {
+            // Сначала пробуем найти токен напрямую через перебор всех учителей
+            // (для обратной совместимости со старыми ссылками, где нет teacherId)
+            const teachersSnap = await get(ref(db, 'teachers'));
+            const teachers = teachersSnap.val() || {};
+            
+            let found = false;
+            for (const [tId, tData] of Object.entries(teachers)) {
+                const links = tData.parentLinks;
+                if (links && links[token]) {
+                    linkData = links[token];
+                    teacherId = tId;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                throw new Error('Токен не найден');
+            }
+
+            // Если в данных ссылки есть teacherId — используем его (более надёжно)
+            if (linkData.teacherId) {
+                teacherId = linkData.teacherId;
+            }
+
+            // Проверяем активность и срок действия
+            if (!linkData.active) {
+                throw new Error('Ссылка деактивирована');
+            }
+
+            const now = Date.now();
+            if (now > linkData.expiresAt) {
+                throw new Error('Срок действия ссылки истёк');
+            }
+
+            studentId = linkData.studentId;
+            studentName = linkData.studentName || 'Ученик';
+
+            // Загружаем данные ученика
+            const studentSnap = await get(ref(db, `teachers/${teacherId}/students/${studentId}`));
+            studentData = studentSnap.val() || {};
+
+        } catch (error) {
+            loadingScreen.style.display = 'none';
+            let errorMessage = '';
+            if (error.message === 'Токен не найден') {
+                errorMessage = 'Ссылка не найдена. Возможно, она была удалена или никогда не существовала.';
+            } else if (error.message === 'Ссылка деактивирована') {
+                errorMessage = 'Эта ссылка была деактивирована. Учитель создал новую ссылку для этого ученика. Обратитесь к учителю за актуальной ссылкой.';
+            } else if (error.message === 'Срок действия ссылки истёк') {
+                errorMessage = 'Срок действия ссылки истёк. Попросите учителя обновить ссылку.';
+            } else {
+                errorMessage = 'Произошла ошибка при проверке ссылки. Пожалуйста, попробуйте позже или обратитесь к учителю.';
+            }
+            appContainer.innerHTML = `
+                <div class="error-container">
+                    <h2>🔗 Ссылка недействительна</h2>
+                    <p>${escapeHtml(errorMessage)}</p>
+                </div>
+            `;
+            throw error;
+        }
+
+        // ===================== ЗАГРУЗКА ДАННЫХ СТАТИСТИКИ =====================
+        loadingScreen.querySelector('p').textContent = 'Загрузка статистики...';
+
+        // Загружаем прогресс ученика (studentData уже загружен выше)
+        const progress = studentData.topicProgress || {};
+
+        // Загружаем норму
+        const normSnap = await get(ref(db, `teachers/${teacherId}/dateStatsNorms/${studentId}`));
+        const norm = normSnap.val() || 100;
+
+        // Загружаем список тем для отображения названий
+        const topicsSnap = await get(ref(db, `teachers/${teacherId}/topics`));
+        const topicsData = topicsSnap.val() || {};
+        const topicsLookup = {};
+        for (const [tid, t] of Object.entries(topicsData)) {
+            topicsLookup[tid] = t.title || tid;
+        }
+        // Собираем названия тем из topicProgress, если нет в списке тем
+        for (const tid of Object.keys(progress)) {
+            if (!topicsLookup[tid]) {
+                const ttitle = progress[tid]?.title;
+                if (ttitle) topicsLookup[tid] = ttitle;
+            }
+        }
+
+        // ===================== ОТРИСОВКА КАЛЕНДАРЯ =====================
+        loadingScreen.style.display = 'none';
+
+        let currentDate = new Date();
+        currentDate.setDate(1); // Первое число месяца
+
+        function buildCalendar(uid, studentName, progress, norm, monthDate) {
+            const year = monthDate.getFullYear();
+            const month = monthDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfWeek = new Date(year, month, 1).getDay();
+            const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+            const dayStats = {};
+            for (const topicId of Object.keys(progress)) {
+                const topic = progress[topicId];
+                if (!topic.questions) continue;
+                for (const qKey of Object.keys(topic.questions)) {
+                    const q = topic.questions[qKey];
+                    if (!q.history) continue;
+                    for (const h of q.history) {
+                        if (!h.timestamp) continue;
+                        const d = new Date(h.timestamp);
+                        if (d.getFullYear() === year && d.getMonth() === month) {
+                            const dayKey = d.getDate();
+                            if (!dayStats[dayKey]) dayStats[dayKey] = { total: 0, correct: 0, wrong: 0 };
+                            dayStats[dayKey].total++;
+                            if (h.correct) dayStats[dayKey].correct++;
+                            else dayStats[dayKey].wrong++;
+                        }
+                    }
+                }
+            }
+
+            const today = new Date();
+            const todayStr = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate();
+
+            let html = '<div class="calendar-grid">';
+            const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            dayNames.forEach(d => { html += `<div class="day-header">${d}</div>`; });
+
+            for (let i = 0; i < startOffset; i++) {
+                html += '<div class="day-cell no-data"></div>';
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const stats = dayStats[day];
+                const dayStr = year + '-' + month + '-' + day;
+                const isToday = dayStr === todayStr;
+
+                if (stats) {
+                    const pct = (stats.correct / stats.total) * 100;
+                    const normVal = norm || 100;
+                    const pctOfNorm = (stats.total / normVal) * 100;
+                    let level;
+                    if (pctOfNorm === 0) level = 0;
+                    else if (pctOfNorm <= 33) level = Math.floor((pctOfNorm / 33) * 2);
+                    else if (pctOfNorm <= 66) level = 2 + Math.floor(((pctOfNorm - 33) / 33) * 2);
+                    else if (pctOfNorm <= 100) level = 4 + Math.floor(((pctOfNorm - 66) / 34) * 2);
+                    else level = 6 + Math.min(2, Math.floor((pctOfNorm - 100) / 50));
+                    level = Math.min(8, Math.max(0, level));
+
+                    const tooltipText = `${studentName}, ${day}.${month+1}.${year}\nЗаданий: ${stats.total}\n✅ Правильно: ${stats.correct}\n❌ Неправильно: ${stats.wrong}\nВыполнение нормы: ${Math.round(pctOfNorm)}%`;
+
+                    html += `<div class="day-cell level-${level} ${isToday ? 'today' : ''}" 
+                        data-uid="${uid}" data-day="${day}" data-month="${month}" data-year="${year}"
+                        data-total="${stats.total}" data-correct="${stats.correct}" data-wrong="${stats.wrong}"
+                        data-pct="${Math.round(pctOfNorm)}"
+                        title="${tooltipText}">
+                        <span class="day-number">${day}</span>
+                    </div>`;
+                } else {
+                    html += `<div class="day-cell no-data ${isToday ? 'today' : ''}"><span class="day-number">${day}</span></div>`;
+                }
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderCalendar() {
+            const monthYear = currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+            let html = `
+                <div class="section-title">📅 Статистика по датам</div>
+                <div class="date-stats-student">
+                    <div class="student-header">
+                        <span>👤 ${escapeHtml(studentName)}</span>
+                    </div>
+                    <div class="student-content">
+                        <div class="norm-display">
+                            <label>Норма заданий в день:</label>
+                            <span>${norm}</span>
+                        </div>
+                        <div class="calendar-nav">
+                            <button id="prevMonthBtn">◀</button>
+                            <span>${monthYear}</span>
+                            <button id="nextMonthBtn">▶</button>
+                        </div>
+                        ${buildCalendar(studentId, studentName, progress, norm, currentDate)}
+                    </div>
+                </div>
+            `;
+
+            appContainer.innerHTML = html;
+
+            // Навигация по месяцам
+            document.getElementById('prevMonthBtn').onclick = () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                renderCalendar();
+            };
+            document.getElementById('nextMonthBtn').onclick = () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            };
+
+            // Tooltip при наведении
+            appContainer.querySelectorAll('.day-cell:not(.no-data)').forEach(cell => {
+                cell.addEventListener('mouseenter', function(e) {
+                    const existing = document.querySelector('.day-cell-tooltip');
+                    if (existing) existing.remove();
+
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'day-cell-tooltip';
+                    const total = this.dataset.total;
+                    const correct = this.dataset.correct;
+                    const wrong = this.dataset.wrong;
+                    const pct = this.dataset.pct;
+                    const day = this.dataset.day;
+                    const month = parseInt(this.dataset.month) + 1;
+                    const year = this.dataset.year;
+
+                    tooltip.innerHTML = `
+                        <div class="tooltip-title">${escapeHtml(studentName)}, ${day}.${month}.${year}</div>
+                        <div class="tooltip-row">Всего заданий: <span>${total}</span></div>
+                        <div class="tooltip-row">✅ Правильно: <span class="correct">${correct}</span></div>
+                        <div class="tooltip-row">❌ Неправильно: <span class="wrong">${wrong}</span></div>
+                        <div class="tooltip-row">Выполнение нормы: <span>${pct}%</span></div>
+                    `;
+                    document.body.appendChild(tooltip);
+
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                    tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+
+                    if (tooltip.offsetTop < 0) {
+                        tooltip.style.top = (rect.bottom + 8) + 'px';
+                    }
+                    if (tooltip.offsetLeft < 0) {
+                        tooltip.style.left = '8px';
+                    }
+                    if (tooltip.offsetLeft + tooltip.offsetWidth > window.innerWidth) {
+                        tooltip.style.left = (window.innerWidth - tooltip.offsetWidth - 8) + 'px';
+                    }
+                });
+
+                cell.addEventListener('mouseleave', function() {
+                    const tooltip = document.querySelector('.day-cell-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+
+                // Клик по ячейке — боковая панель
+                cell.addEventListener('click', function() {
+                    // Скрываем тултип перед открытием панели (на телефонах он иначе не пропадает)
+                    const tooltip = document.querySelector('.day-cell-tooltip');
+                    if (tooltip) tooltip.remove();
+                    showDayStats(this.dataset.uid, parseInt(this.dataset.day), parseInt(this.dataset.month), parseInt(this.dataset.year));
+                });
+            });
+        }
+
+        // Боковая панель статистики за день
+        function showDayStats(uid, day, month, year) {
+            const existing = document.querySelector('.day-stats-panel');
+            if (existing) existing.remove();
+
+            const dateStr = `${day}.${month+1}.${year}`;
+
+            const topicDetails = {};
+            let totalCorrect = 0;
+            let totalWrong = 0;
+
+            for (const topicId of Object.keys(progress)) {
+                const topic = progress[topicId];
+                if (!topic.questions) continue;
+                for (const qKey of Object.keys(topic.questions)) {
+                    const q = topic.questions[qKey];
+                    if (!q.history) continue;
+                    for (const h of q.history) {
+                        if (!h.timestamp) continue;
+                        const d = new Date(h.timestamp);
+                        if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) {
+                            if (!topicDetails[topicId]) {
+                                topicDetails[topicId] = { title: topicsLookup[topicId] || topic.title || topicId, correct: 0, wrong: 0 };
+                            }
+                            if (h.correct) {
+                                topicDetails[topicId].correct++;
+                                totalCorrect++;
+                            } else {
+                                topicDetails[topicId].wrong++;
+                                totalWrong++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const total = totalCorrect + totalWrong;
+            const pct = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
+
+            const panel = document.createElement('div');
+            panel.className = 'day-stats-panel open';
+            panel.innerHTML = `
+                <button class="panel-close">&times;</button>
+                <h3>📊 ${escapeHtml(studentName)}</h3>
+                <p style="color:var(--text-secondary); margin-bottom:1rem;">${dateStr}</p>
+                <div class="stat-row"><span class="label">Всего заданий</span><span class="value">${total}</span></div>
+                <div class="stat-row"><span class="label">✅ Правильно</span><span class="value correct">${totalCorrect}</span></div>
+                <div class="stat-row"><span class="label">❌ Неправильно</span><span class="value wrong">${totalWrong}</span></div>
+                <div class="stat-row"><span class="label">Процент правильных</span><span class="value">${pct}%</span></div>
+                <hr style="margin:1rem 0; border-color:var(--border);">
+                <h4 style="margin-bottom:0.5rem;">По темам:</h4>
+                ${Object.values(topicDetails).length === 0 ? '<p style="color:var(--text-secondary);">Нет данных</p>' :
+                    Object.values(topicDetails).map(td => `
+                        <div class="stat-row">
+                            <span class="label">${escapeHtml(td.title)}</span>
+                            <span class="value">✅${td.correct} ❌${td.wrong}</span>
+                        </div>
+                    `).join('')
+                }
+            `;
+
+            document.body.appendChild(panel);
+
+            panel.querySelector('.panel-close').onclick = () => panel.remove();
+            setTimeout(() => {
+                document.addEventListener('click', function closePanel(e) {
+                    if (!panel.contains(e.target) && !e.target.closest('.day-cell')) {
+                        panel.remove();
+                        document.removeEventListener('click', closePanel);
+                    }
+                });
+            }, 100);
+        }
+
+        // ===================== ТЕМА =====================
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('parentTheme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = '☀️';
+        }
+        themeToggle.onclick = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('parentTheme', 'light');
+                themeToggle.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('parentTheme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        };
+
+        // ===================== ЗАПУСК =====================
+        renderCalendar();
+    </script>
+</body>
+</html>

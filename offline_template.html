@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ForeStudy — Офлайн</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f7fb;color:#1a1a2e;min-height:100vh;display:flex;flex-direction:column}
+[data-theme="dark"] body{background:#0f172a;color:#e2e8f0}
+:root{--bg:#f5f7fb;--surface:#fff;--text:#1a1a2e;--text-secondary:#555;--accent:#2e7d32;--accent-hover:#1b5e20;--border:#e2e8f0;--shadow:0 4px 12px rgba(0,0,0,0.08)}
+[data-theme="dark"]{--bg:#0f172a;--surface:#1e293b;--text:#e2e8f0;--text-secondary:#94a3b8;--accent:#4caf50;--accent-hover:#388e3c;--border:#334155;--shadow:0 4px 20px rgba(0,0,0,0.4)}
+.header{position:sticky;top:0;z-index:50;display:flex;align-items:center;padding:.75rem 1.5rem;background:#ffffffcc;backdrop-filter:blur(10px);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.5rem}
+[data-theme="dark"] .header{background:#1e293bcc}
+.logo{font-weight:700;font-size:1.5rem;color:#2e7d32;display:flex;align-items:center;gap:.5rem}
+[data-theme="dark"] .logo{color:#4caf50}
+.container{max-width:800px;margin:2rem auto;padding:0 1rem;flex:1;width:100%}
+.btn{padding:.5rem 1.2rem;border-radius:2rem;border:none;font-weight:600;cursor:pointer;transition:all .2s;background:var(--accent);color:white;font-size:.9rem}
+.btn:hover{background:var(--accent-hover)}
+.btn.outline{background:transparent;border:2px solid var(--accent);color:var(--accent)}
+.btn.outline:hover{background:var(--accent);color:white}
+.btn.small{padding:.4rem 1rem;font-size:.85rem}
+.topic-card{border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.5rem 0;background:var(--surface);box-shadow:var(--shadow)}
+.progress-bar{height:8px;border-radius:4px;background:var(--border);margin:.5rem 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;background:var(--accent)}
+.level-badge{display:inline-block;width:20px;height:20px;border-radius:50%;margin-right:.3rem;vertical-align:middle}
+.level-1{background:#d97706}.level-2{background:#94a3b8}.level-3{background:#f59e0b}.level-4{background:#06b6d4}.level-5{background:#8b5cf6}
+.card-flip{perspective:1000px;height:180px;margin-bottom:1rem}
+.card-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;cursor:pointer}
+.card-flip.flipped .card-inner{transform:rotateY(180deg)}
+.card-front,.card-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;padding:1rem;display:flex;justify-content:center;align-items:center;text-align:center;background:var(--surface);border:2px solid var(--accent);font-size:1.1rem}
+.card-back{transform:rotateY(180deg);background:var(--accent);color:white}
+.modal-backdrop{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;z-index:100;padding:1rem}
+.modal-content{background:var(--surface);padding:2rem;border-radius:16px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:.5rem;right:.8rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text)}
+.btn-row{display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;gap:.5rem;flex-wrap:wrap}
+.empty-message{color:var(--text-secondary);font-style:italic;padding:2rem 0;text-align:center}
+.notif{position:fixed;right:20px;top:20px;z-index:2000;padding:.6rem 1rem;border-radius:8px;color:white;box-shadow:0 6px 18px rgba(0,0,0,.12);transition:opacity .18s,transform .18s;max-width:400px}
+.explanation{font-style:italic;color:var(--text-secondary);margin-top:.5rem;padding:.5rem;background:var(--bg);border-radius:4px}
+.timer{font-size:1.2rem;font-weight:700;margin-bottom:.5rem;color:var(--accent)}
+.question-progress{font-size:.9rem;color:var(--text-secondary);margin-bottom:1rem;text-align:center}
+.option label{display:block;margin:.5rem 0;padding:.5rem;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s}
+.option label:hover{background:var(--bg);border-color:var(--accent)}
+.correct-answer{background-color:#d4edda;border-radius:2px;padding:0}
+.wrong-answer{background-color:#f8d7da;border-radius:2px;padding:0}
+[data-theme="dark"] .correct-answer{background-color:#1a3d2a;color:#4caf50}
+[data-theme="dark"] .wrong-answer{background-color:#3d1a1a;color:#ff6b6b}
+.final-test-banner{background:#d6eaf8;border:2px solid #5dade2;border-radius:12px;padding:1rem;text-align:center;margin:1rem 0}
+[data-theme="dark"] .final-test-banner{background:#1a3a5c;border-color:#5dade2}
+.final-test-banner h3{color:#2c3e50;margin-bottom:.3rem}
+[data-theme="dark"] .final-test-banner h3{color:#d6eaf8}
+.final-test-btn{background:#2980b9;padding:.5rem 1.2rem;border-radius:2rem;border:none;font-weight:600;cursor:pointer;transition:all .2s;color:white;font-size:.9rem}
+.final-test-btn:hover{background:#1a5276}
+@media(max-width:600px){.header{padding:.5rem 1rem}.logo{font-size:1.2rem}}
+</style>
+</head>
+<body>
+<header class="header"><div class="logo">📚 ForeStudy · Офлайн</div><button id="themeToggle" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text);margin-left:auto">🌙</button></header>
+<main class="container" id="app">
+<div style="border:2px solid #dc3545;background:#f8d7da;border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.7rem;font-size:.9rem;color:#721c24">
+<div style="font-size:1.5rem;flex-shrink:0">⚠️</div>
+<div><strong>Важно!</strong> Данные тестов хранятся временно. После закрытия страницы они могут быть потеряны. Регулярно выгружайте результаты через кнопку <strong>«📤 Подготовить к отправке»</strong>.</div>
+
+</div>
+<div style="text-align:center;padding:2rem">⏳ Загрузка...</div></main>
+
+<script>
+// ===================== ДАННЫЕ =====================
+window.__offlineData = {};
+var D = window.__offlineData;
+var SESSION_ID = D.sessionId || '';
+var STORAGE_KEY = 'forestudy_offline_results_' + D.student.uid + (SESSION_ID ? '_' + SESSION_ID : '');
+var PROGRESS_KEY = 'forestudy_offline_progress_' + D.student.uid + (SESSION_ID ? '_' + SESSION_ID : '');
+
+var pendingResults = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+var localProgress = JSON.parse(localStorage.getItem(PROGRESS_KEY) || 'null');
+if (!localProgress) {
+    localProgress = JSON.parse(JSON.stringify(D.topicProgress));
+}
+
+// Настройка окна дедупликации (в миллисекундах). По умолчанию 8000 (8 секунд).
+// Можно изменить в Godmode через фиолетовую плашку.
+var DUPES_WINDOW_MS = parseInt(localStorage.getItem('forestudy_dupes_window') || '8000');
+
+// ===================== УТИЛИТЫ =====================
+function escapeHtml(t){if(!t)return '';var m={'&':'&','<':'<','>':'>','"':'"',"'":'&#039;'};return String(t).replace(/[&<>"']/g,function(x){return m[x]})}
+function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingResults));
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(localProgress));
+}
+function notify(msg,type,timeout){
+    var el=document.createElement('div');el.className='notif';el.textContent=msg;
+    el.style.background=type==='error'?'#ef4444':type==='success'?'#10b981':'#1f2937';
+    document.body.appendChild(el);requestAnimationFrame(function(){el.style.opacity='1';el.style.transform='translateY(0)'});
+    setTimeout(function(){el.style.opacity='0';el.style.transform='translateY(-8px)';setTimeout(function(){el.remove()},200)},timeout||3000);
+}
+function safeKey(s){if(!s)return 'empty';return 'q_'+String(s).replace(/[^a-zA-Z0-9\u0430-\u044f\u0410-\u042f\u0451\u0401_]/g,'_').slice(0,200)}
+function getIsFastTrack(qp,levelUpAt){
+    if(!qp)return false;
+    if(qp.firstCorrect===true)return true;
+    if(qp.firstCorrect===false&&levelUpAt){
+        var hist=qp.history||[];var pl=hist.filter(function(h){return h.timestamp>=levelUpAt});
+        if(pl.length>0){var fp=pl.sort(function(a,b){return a.timestamp-b.timestamp})[0];if(fp.correct&&pl.every(function(h){return h.correct}))return true}
+    }
+    return false;
+}
+function getMaxNeeded(qp,levelUpAt){return getIsFastTrack(qp,levelUpAt)?3:4}
+function showModal(html){
+    var b=document.createElement('div');b.className='modal-backdrop';
+    b.innerHTML='<div class="modal-content"><button class="modal-close">&times;</button>'+html+'</div>';
+    document.body.appendChild(b);
+    b.querySelector('.modal-close').onclick=function(){b.remove()};
+    b.addEventListener('click',function(e){if(e.target===b)b.remove()});
+    return b;
+}
+
+// ===================== ТЕМА =====================
+var theme=localStorage.getItem('theme')||'light';
+document.documentElement.setAttribute('data-theme',theme);
+document.getElementById('themeToggle').textContent=theme==='light'?'🌙':'☀️';
+document.getElementById('themeToggle').onclick=function(){theme=theme==='light'?'dark':'light';localStorage.setItem('theme',theme);document.documentElement.setAttribute('data-theme',theme);document.getElementById('themeToggle').textContent=theme==='light'?'🌙':'☀️'};
+
+// Счётчик кликов на логотип для Godmode (тестирование системы)
+var logoClickCount=parseInt(localStorage.getItem('forestudy_logo_clicks')||'0');
+var godMode=localStorage.getItem('forestudy_god_mode')==='true';
+var logoEl=document.querySelector('.logo');
+if(logoEl){
+    logoEl.style.cursor='pointer';
+    logoEl.addEventListener('click',function(){
+        logoClickCount++;
+        localStorage.setItem('forestudy_logo_clicks',logoClickCount.toString());
+        if(logoClickCount>=20){
+            logoClickCount=0;
+            localStorage.setItem('forestudy_logo_clicks','0');
+            var pwd=prompt('🔐 Введите пароль для Godmode:');
+            if(pwd==='aboba'){
+                godMode=true;
+                localStorage.setItem('forestudy_god_mode','true');
+                notify('👑 Godmode активирован! В тестах появились кнопки принудительного ответа.','success',5000);
+                render();
+            }else{
+                notify('❌ Неверный пароль!','error',3000);
+            }
+        }
+    });
+}
+
+// ===================== РЕНДЕР =====================
+function render(){
+    var app=document.getElementById('app');
+    if(!D.topics.length){app.innerHTML='<div class="empty-message">Нет назначенных тем.</div>';return}
+    var html='';
+    if(godMode){
+        html+='<div style="border:2px solid #8e44ad;background:#f3e5f5;border-radius:12px;padding:.6rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:#6a1b9a">';
+        html+='<div style="font-size:1.3rem;flex-shrink:0">👑</div>';
+        html+='<div style="flex:1"><strong>Godmode активен.</strong> В тестах доступны кнопки принудительного ответа.</div>';
+        var dupesSec = DUPES_WINDOW_MS / 1000;
+        html+='<div style="display:flex;align-items:center;gap:.4rem;font-size:.8rem">';
+        html+='<span>🔄 Лимит:</span>';
+        html+='<input type="number" id="godDupesInput" value="'+dupesSec+'" min="0" max="60" step="1" style="width:50px;padding:2px 4px;border:1px solid #8e44ad;border-radius:4px;font-size:.8rem;text-align:center">';
+        html+='<span>сек</span>';
+        html+='<button class="btn small" id="godDupesApply" style="background:#8e44ad;padding:.2rem .6rem;font-size:.75rem">Применить</button>';
+        html+='</div>';
+        html+='</div>';
+    }
+    html+='<div style="border:2px solid #dc3545;background:#f8d7da;border-radius:12px;padding:.8rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.7rem;font-size:.9rem;color:#721c24">';
+    html+='<div style="font-size:1.5rem;flex-shrink:0">⚠️</div>';
+    html+='<div><strong>Важно!</strong> Данные тестов хранятся временно. После закрытия страницы они могут быть потеряны. Регулярно выгружайте результаты через кнопку <strong>«📤 Подготовить к отправке»</strong>.</div>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center;margin-bottom:1.5rem">';
+    html+=pendingResults.length?'<button class="btn" id="exportBtn">📤 Подготовить к отправке ('+pendingResults.length+')</button>':'<button class="btn" id="exportBtn" disabled style="opacity:.5">📤 Нет результатов</button>';
+    html+='</div>';
+    html+='<h2>📚 Мои темы</h2>';
+    D.topics.forEach(function(topic){
+        var tp=localProgress[topic.id]||{level:1,questions:{},testHistory:[]};
+        var level=tp.level||1;
+        var totalQ=topic.test?topic.test.length:0;
+        var mastered=0;
+        if(tp.questions){mastered=Object.values(tp.questions).filter(function(q){return q.correctCount>=getMaxNeeded(q,tp.levelUpAt)}).length}
+        var pct=totalQ?Math.round(mastered/totalQ*100):0;
+        var finalTestPending=tp.finalTestPending===true;
+        html+='<div class="topic-card"><div style="display:flex;align-items:center;gap:.5rem"><span class="level-badge level-'+level+'"></span><h3 style="flex:1">'+escapeHtml(topic.title)+'</h3></div>';
+        html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+        html+='<p style="font-size:.85rem">Освоено вопросов: '+mastered+'/'+totalQ+'</p><div class="topic-actions" style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">';
+        if(finalTestPending&&mastered>=totalQ){
+            html+='<div class="final-test-banner"><h3>🎯 Все задания освоены!</h3><p style="font-size:.9rem;margin:.5rem 0">📤 Выгрузите результаты через кнопку «Подготовить к отправке» и пройдите итоговый тест в онлайн-версии после загрузки.</p></div>';
+            html+='<button class="btn small start-test" data-topicid="'+topic.id+'">📝 Тест</button>';
+            html+='<button class="btn small outline view-stats" data-topicid="'+topic.id+'">📊 Статистика</button>';
+        }else{
+            html+='<button class="btn small start-test" data-topicid="'+topic.id+'">📝 Тест</button>';
+            html+='<button class="btn small outline view-stats" data-topicid="'+topic.id+'">📊 Статистика</button>';
+        }
+        html+='</div></div>';
+    });
+    app.innerHTML=html;
+    document.getElementById('exportBtn').onclick=exportResults;
+    app.querySelectorAll('.start-test').forEach(function(b){b.onclick=function(){startTest(b.dataset.topicid)}});
+    app.querySelectorAll('.final-test-start').forEach(function(b){b.onclick=function(){startFinalTest(b.dataset.topicid)}});
+    app.querySelectorAll('.view-stats').forEach(function(b){b.onclick=function(){showStats(b.dataset.topicid)}});
+    // Godmode: обработчик кнопки применения лимита дедупликации
+    if(godMode){
+        var applyBtn=document.getElementById('godDupesApply');
+        if(applyBtn){
+            applyBtn.onclick=function(){
+                var input=document.getElementById('godDupesInput');
+                if(!input)return;
+                var val=parseInt(input.value);
+                if(isNaN(val)||val<0)val=0;
+                if(val>60)val=60;
+                DUPES_WINDOW_MS=val*1000;
+                localStorage.setItem('forestudy_dupes_window',DUPES_WINDOW_MS.toString());
+                notify('🔄 Лимит дедупликации изменён на '+val+' сек'+(val===0?' (отключено)':''),'success',3000);
+            };
+        }
+    }
+}
+function showStats(topicId){
+    var topic=D.topics.find(function(t){return t.id===topicId});if(!topic)return;
+    var tp=localProgress[topicId]||{level:1,questions:{},testHistory:[]};
+    var qp=tp.questions||{};
+    var hist=tp.testHistory||[];
+    var html='<h3>📊 '+escapeHtml(topic.title)+' (уровень '+tp.level+')</h3>';
+    if(hist.length){
+        html+='<h4>📝 История тестов</h4>';
+        hist.slice().reverse().forEach(function(t){
+            html+='<p style="font-size:.9rem">📅 '+new Date(t.timestamp).toLocaleString('ru-RU')+': '+t.score+'/'+t.total+' ('+t.percentage+'%)</p>';
+        });
+    }
+    html+='<h4>📋 Прогресс (нажмите на вопрос для истории)</h4>';
+    (topic.test||[]).forEach(function(q){
+        var key=safeKey(q.question);var st=qp[key];var cnt=st?st.correctCount||0:0;
+        var maxN=getMaxNeeded(st,tp.levelUpAt);var pct=Math.min(100,cnt/maxN*100);
+        html+='<div style="display:flex;align-items:center;gap:.5rem;margin:.3rem 0"><span class="question-link" data-topicid="'+topicId+'" data-qtext="'+escapeHtml(q.question)+'" style="flex:1;font-size:.9rem;cursor:pointer;color:var(--accent);text-decoration:underline;text-decoration-style:dotted">'+escapeHtml(q.question)+'</span><div class="progress-bar" style="flex:1;flex-shrink:0"><div class="progress-fill" style="width:'+pct+'%"></div></div><span style="font-size:.8rem;min-width:40px;text-align:right">'+cnt+'/'+maxN+'</span></div>';
+    });
+    var backdrop=showModal(html);
+    backdrop.querySelectorAll('.question-link').forEach(function(link){
+        link.addEventListener('click',function(){
+            var tid=link.dataset.topicid;
+            var qtext=link.dataset.qtext;
+            var topic2=D.topics.find(function(t){return t.id===tid});
+            if(!topic2)return;
+            var question=(topic2.test||[]).find(function(q){return q.question===qtext});
+            if(!question)return;
+            var key=safeKey(question.question);
+            var st=qp[key]||{};
+            var history=st.history||[];
+            showQuestionHistoryModal(question,history);
+        });
+    });
+}
+function showQuestionHistoryModal(q,history){
+    var overlay=document.createElement('div');
+    overlay.className='modal-backdrop';
+    var imgHtml=q.image?'<div style="margin-bottom:.8rem"><img src="'+escapeHtml(q.image)+'" style="max-width:100%;border-radius:8px" alt=""></div>':'';
+    var html='<div class="modal-content"><button class="modal-close">&times;</button><h3>📋 Задание</h3>'+imgHtml+'<p><strong>'+escapeHtml(q.question)+'</strong></p><p>Тип: '+(q.type==='card'?'Карточка':q.type==='open'?'Открытый ответ':'Выбор варианта')+'</p>'+(q.explanation?'<p><em>💡 '+escapeHtml(q.explanation)+'</em></p>':'')+'<h4 style="margin-top:1rem;">📜 История офлайн-ответов</h4>';
+    if(!history.length)html+='<p>Нет записей</p>';
+    else{
+        html+='<table style="width:100%;border-collapse:collapse;font-size:.9rem"><tr><th style="text-align:left;padding:.3rem;border-bottom:1px solid var(--border)">Дата</th><th style="text-align:left;padding:.3rem;border-bottom:1px solid var(--border)">Результат</th><th style="text-align:left;padding:.3rem;border-bottom:1px solid var(--border)">Ответ</th></tr>';
+        history.slice().reverse().forEach(function(rec){
+            var answerText=rec.userAnswer||(rec.options?rec.options[rec.chosenIdx]:'')||'—';
+            html+='<tr><td style="padding:.3rem;border-bottom:1px solid var(--border)">'+new Date(rec.timestamp).toLocaleString('ru-RU')+'</td><td style="padding:.3rem;border-bottom:1px solid var(--border)">'+(rec.correct?'✅ Верно':'❌ Ошибка')+'</td><td style="padding:.3rem;border-bottom:1px solid var(--border)">'+escapeHtml(answerText)+'</td></tr>';
+        });
+        html+='</table>';
+    }
+    html+='</div>';
+    overlay.innerHTML=html;
+    document.body.appendChild(overlay);
+    overlay.querySelector('.modal-close').onclick=function(){overlay.remove()};
+    overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove()});
+}
+
+// ===================== ТЕСТЫ =====================
+function startTest(topicId){
+    var topic=D.topics.find(function(t){return t.id===topicId});if(!topic)return;
+    var allQuestions=topic.test||[];if(!allQuestions.length)return alert('В теме нет теста.');
+    var tp=localProgress[topicId]||{level:1,questions:{},testHistory:[]};
+    var qp=tp.questions||{};
+    var weighted=[];
+    allQuestions.forEach(function(q){
+        var key=safeKey(q.question);var st=qp[key]||{correctCount:0,wrongCount:0,modifier:0,firstCorrect:false};
+        var maxN=getMaxNeeded(st,tp.levelUpAt);
+        if(st.correctCount<maxN){
+            var w=Math.min(1.6,1+(st.modifier||0)/100);
+            for(var i=0;i<Math.floor(w*10);i++)weighted.push(q);
+        }
+    });
+    if(!weighted.length)return alert('Все вопросы уже освоены!');
+    var sel=[].concat(weighted);if(topic.randomOrder)sel=sel.sort(function(){return Math.random()-.5});
+    var seen={};var unique=sel.filter(function(q){var k=safeKey(q.question);if(seen[k])return false;seen[k]=true;return true});
+    var test=unique.slice(0,topic.questionsPerTest||10);
+    runTest(topicId,test,false);
+}
+
+function startFinalTest(topicId){
+    var topic=D.topics.find(function(t){return t.id===topicId});if(!topic)return;
+    var allQuestions=topic.test||[];if(!allQuestions.length)return alert('В теме нет теста.');
+    var test=[].concat(allQuestions);if(topic.randomOrder)test=test.sort(function(){return Math.random()-.5});
+    runTest(topicId,test,true);
+}
+
+function runTest(topicId,test,isFinal){
+    var topic=D.topics.find(function(t){return t.id===topicId});
+    var total=test.length;var current=0;var answers=[];var timerInterval,timeLeft,answered;
+    var backdrop=document.createElement('div');backdrop.className='modal-backdrop';document.body.appendChild(backdrop);
+    function clearTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null}}
+    function renderQuestion(){
+        clearTimer();if(current>=total){finishTest();return}
+        var q=test[current];timeLeft=q.timeLimit||topic.timeLimit||30;answered=false;
+        backdrop.innerHTML='<div class="modal-content"><button class="modal-close">&times;</button><div class="question-progress">Задание '+(current+1)+' из '+total+'</div><div class="timer" id="timerDisplay">⏱ '+timeLeft+' сек</div><div id="questionContent"></div></div>';
+        backdrop.querySelector('.modal-close').onclick=function(){clearTimer();backdrop.remove()};
+        var content=backdrop.querySelector('#questionContent');
+        var imgHtml=q.image?'<div style="margin-bottom:.8rem"><img src="'+escapeHtml(q.image)+'" style="max-width:100%;border-radius:8px" alt=""></div>':'';
+        if(q.type==='card')content.innerHTML='<div class="card-flip"><div class="card-inner"><div class="card-front">'+escapeHtml(q.question)+'</div><div class="card-back">'+escapeHtml(q.answer)+'</div></div></div><div style="display:flex;gap:.5rem;margin-top:1rem"><button class="btn" id="cardFlipBtn">Перевернуть</button><button class="btn outline" id="cardDoneBtn">Я посмотрел</button></div>';
+        else if(q.type==='open')content.innerHTML=imgHtml+'<p style="margin-bottom:1.5rem"><strong>'+escapeHtml(q.question)+'</strong></p><textarea id="openAnswer" placeholder="Ваш ответ" rows="2" style="width:100%;padding:.8rem;border-radius:8px;border:2px solid var(--border);font-size:1rem"></textarea><button class="btn" id="submitOpenBtn" style="margin-top:1.5rem">Ответить</button>';
+        else content.innerHTML=imgHtml+'<p style="margin-bottom:1.5rem"><strong>'+escapeHtml(q.question)+'</strong></p><div class="option">'+q.options.map(function(o,i){return '<label><input type="radio" name="choice" value="'+i+'"> '+escapeHtml(o)+'</label>'}).join('')+'</div><button class="btn" id="submitChoiceBtn" style="margin-top:1.5rem">Ответить</button>';
+        timerInterval=setInterval(function(){
+            timeLeft--;var td=backdrop.querySelector('#timerDisplay');if(td)td.textContent='⏱ '+timeLeft+' сек';
+            if(timeLeft<=0){clearTimer();if(!answered)autoSubmit(q)}
+        },1000);
+        // Godmode: кнопки показа ответа
+        if(godMode){
+            var godRow=document.createElement('div');
+            godRow.style.cssText='display:flex;gap:.5rem;justify-content:center;margin-top:.8rem;padding-top:.6rem;border-top:1px dashed #8e44ad';
+            godRow.innerHTML='<span style="font-size:.75rem;color:#8e44ad;align-self:center">👑 Godmode:</span>'+
+                '<button class="btn small" id="godShowBtn" style="background:#8e44ad">👀 Показать ответ</button>'+
+                '<button class="btn small" id="godWrongBtn" style="background:#ef4444">❌ Неправильно (10 нулей)</button>';
+            backdrop.querySelector('.modal-content').appendChild(godRow);
+        }
+        if(q.type==='card'){
+            backdrop.querySelector('#cardFlipBtn').onclick=function(){backdrop.querySelector('.card-flip').classList.toggle('flipped')};
+            backdrop.querySelector('#cardDoneBtn').onclick=function(){if(answered)return;answered=true;clearTimer();answers.push({type:'card',question:q.question,correct:true,timeLeft:timeLeft});showResult(q,true,null)};
+        }else if(q.type==='open'){
+            var inp=backdrop.querySelector('#openAnswer');var btn=backdrop.querySelector('#submitOpenBtn');
+            btn.onclick=function(){if(answered)return;answered=true;clearTimer();var ua=inp.value.trim();var ca=(q.correctAnswer||'').trim();var corr=(ua===ca);var pw=false;if(!corr){var marks=['.',',','!','?',';',':'];for(var mi=0;mi<marks.length;mi++){var m=marks[mi];if(ua+m===ca||ua===ca+m){corr=true;pw=true;break}}}answers.push({type:'open',question:q.question,correct:corr,correctAnswer:q.correctAnswer,explanation:q.explanation,timeLeft:timeLeft,userAnswer:ua,punctuationWarning:pw});showResult(q,corr,{userAnswer:ua,correctAnswer:q.correctAnswer,punctuationWarning:pw})};
+            inp.addEventListener('keypress',function(e){if(e.key==='Enter'){e.preventDefault();btn.click()}});
+        }else{
+            backdrop.querySelector('#submitChoiceBtn').onclick=function(){if(answered)return;answered=true;clearTimer();var sel=backdrop.querySelector('input[name="choice"]:checked');var idx=sel?parseInt(sel.value):-1;var corr=(idx===q.correct);answers.push({type:'choice',question:q.question,correct:corr,correctIdx:q.correct,options:q.options,explanation:q.explanation,timeLeft:timeLeft,chosenIdx:idx});showResult(q,corr,{chosenIdx:idx,correctIdx:q.correct})};
+        }
+        // Godmode: обработчики кнопок
+        if(godMode){
+            var gs=document.getElementById('godShowBtn');
+            var gw=document.getElementById('godWrongBtn');
+            if(gs)gs.onclick=function(){
+                if(answered)return;
+                // Подставляем правильный ответ сразу в форму
+                if(q.type==='choice'&&q.options&&q.correct!==undefined){
+                    var radios=backdrop.querySelectorAll('input[name="choice"]');
+                    if(radios&&radios[q.correct])radios[q.correct].checked=true;
+                }else if(q.type==='open'&&q.correctAnswer){
+                    var ta=backdrop.querySelector('#openAnswer');
+                    if(ta)ta.value=q.correctAnswer;
+                }else if(q.type==='card'){
+                    var cf=backdrop.querySelector('.card-flip');
+                    if(cf)cf.classList.add('flipped');
+                }
+                // Показываем уведомление, что ответ подставлен
+                var existing=backdrop.querySelector('#godAnswerDisplay');
+                if(existing)existing.remove();
+                var div=document.createElement('div');
+                div.id='godAnswerDisplay';
+                div.style.cssText='margin-top:.8rem;padding:.6rem;background:#f3e8ff;border-radius:8px;text-align:center;font-size:.9rem;color:#6b21a8';
+                div.innerHTML='✅ Правильный ответ подставлен! Нажмите "Ответить".';
+                backdrop.querySelector('.modal-content').appendChild(div);
+            };
+            if(gw)gw.onclick=function(){
+                if(answered)return;
+                answered=true;clearTimer();
+                // Симулируем отправку "0000000000" как ответа
+                var fakeAnswer='0000000000';
+                if(q.type==='open'){
+                    answers.push({type:'open',question:q.question,correct:false,correctAnswer:q.correctAnswer,explanation:q.explanation,timeLeft:timeLeft,userAnswer:fakeAnswer});
+                    showResult(q,false,{userAnswer:fakeAnswer,correctAnswer:q.correctAnswer||'',punctuationWarning:false});
+                }else if(q.type==='card'){
+                    answers.push({type:'card',question:q.question,correct:false,timeLeft:timeLeft});
+                    showResult(q,false,{});
+                }else{
+                    answers.push({type:'choice',question:q.question,correct:false,correctIdx:q.correct,options:q.options,explanation:q.explanation,timeLeft:timeLeft,chosenIdx:-1});
+                    showResult(q,false,{chosenIdx:-1,correctIdx:q.correct});
+                }
+            };
+        }
+    }
+    function autoSubmit(q){
+        if(answered)return;answered=true;clearTimer();
+        if(q.type==='card'){answers.push({question:q.question,correct:false,timeLeft:0});showResult(q,false,null)}
+        else if(q.type==='open'){var ua=(backdrop.querySelector('#openAnswer')?backdrop.querySelector('#openAnswer').value:'').trim();var ca=(q.correctAnswer||'').trim();var corr=(ua===ca);var pw=false;if(!corr){var marks=['.',',','!','?',';',':'];for(var mi=0;mi<marks.length;mi++){var m=marks[mi];if(ua+m===ca||ua===ca+m){corr=true;pw=true;break}}}answers.push({type:'open',question:q.question,correct:corr,correctAnswer:q.correctAnswer,explanation:q.explanation,timeLeft:0,userAnswer:ua,punctuationWarning:pw});showResult(q,corr,{userAnswer:ua,correctAnswer:q.correctAnswer,punctuationWarning:pw})}
+        else{var sel=backdrop.querySelector('input[name="choice"]:checked');var idx=sel?parseInt(sel.value):-1;answers.push({type:'choice',question:q.question,correct:false,correctIdx:q.correct,options:q.options,explanation:q.explanation,timeLeft:0,chosenIdx:idx});showResult(q,false,{chosenIdx:idx,correctIdx:q.correct})}
+    }
+    function showResult(q,isCorrect,details){
+        if(!details)details={};
+        clearTimer();var content=backdrop.querySelector('#questionContent');var td=backdrop.querySelector('#timerDisplay');var pd=backdrop.querySelector('#questionProgress');
+        if(td)td.style.display='none';if(pd)pd.style.display='none';
+        var imgHtml=q.image?'<div style="margin-bottom:.8rem"><img src="'+escapeHtml(q.image)+'" style="max-width:100%;border-radius:8px" alt=""></div>':'';
+        var html='<div>'+imgHtml+'<p style="font-size:1.1rem;margin-bottom:1rem"><strong>'+escapeHtml(q.question)+'</strong></p>';
+        if(q.type==='choice'){html+='<div>';q.options.forEach(function(o,i){var c='';if(i===details.correctIdx)c=' correct-answer';if(i===details.chosenIdx&&!isCorrect)c=' wrong-answer';html+='<div class="'+c+'" style="margin:.3rem 0;padding:.3rem;border-radius:4px">'+escapeHtml(o)+(i===details.correctIdx?' ✓':'')+(i===details.chosenIdx&&!isCorrect?' ✗':'')+'</div>'});html+='</div>'}
+        else if(q.type==='open'){var ua=details.userAnswer||'',ca=details.correctAnswer||'';if(isCorrect&&!details.punctuationWarning)html+='<p>Ваш ответ: <strong>'+escapeHtml(ua)+'</strong></p>';else if(isCorrect&&details.punctuationWarning)html+='<p>Ваш ответ: <strong>'+escapeHtml(ua)+'</strong></p><p style="color:#d4a017">🔍 Забыли знак препинания?</p>';else{var ml=Math.max(ua.length,ca.length);var uh='',ch='';for(var i=0;i<ml;i++){var uc=ua[i]||'',cc=ca[i]||'';if(uc===cc){uh+=escapeHtml(uc);ch+=escapeHtml(cc)}else{uh+='<span class="wrong-answer">'+escapeHtml(uc||' ')+'</span>';ch+='<span class="correct-answer">'+escapeHtml(cc||' ')+'</span>'}}html+='<p>Ваш ответ: '+uh+'</p><p>Правильный: '+ch+'</p>'}}
+        else if(q.type==='card')html+='<p>Карточка '+(isCorrect?'просмотрена':'не просмотрена')+'</p>';
+        if(q.explanation)html+='<div class="explanation">💡 '+escapeHtml(q.explanation)+'</div>';
+        html+='</div>';var isLast=(current===total-1);
+        html+='<div class="btn-row"><button class="btn" id="nextQuestionBtn">'+(isLast?'Завершить'+(isFinal?' итоговый':'')+' тест 🏁':'Далее &rarr;')+'</button></div>';
+        content.innerHTML=html;
+        document.getElementById('nextQuestionBtn').onclick=function(){if(isLast)finishTest();else{current++;renderQuestion()}};
+    }
+    function finishTest(){
+        clearTimer();backdrop.remove();
+        var score=answers.filter(function(a){return a.correct}).length;
+        if(!localProgress[topicId])localProgress[topicId]={level:1,questions:{},testHistory:[]};
+        var tp=localProgress[topicId];
+        // Обновляем прогресс вопросов ТОЛЬКО для обычных тестов, не для итоговых
+        if(!isFinal){
+            answers.forEach(function(a){
+                var key=safeKey(a.question);
+                if(!tp.questions[key])tp.questions[key]={correctCount:0,wrongCount:0,modifier:0,firstCorrect:false,history:[]};
+                var qp=tp.questions[key];
+                var wasFirst=(qp.correctCount===0&&qp.wrongCount===0);var maxN=getMaxNeeded(qp,tp.levelUpAt);
+                if(a.correct){qp.correctCount=Math.min(maxN,qp.correctCount+1);if(wasFirst)qp.firstCorrect=true;if(qp.modifier>0)qp.modifier=Math.max(0,qp.modifier-20)}
+                else{qp.correctCount=Math.max(0,qp.correctCount-1);qp.modifier=Math.min(60,(qp.modifier||0)+20);qp.wrongCount=(qp.wrongCount||0)+1;qp.firstCorrect=false}
+                var entry={timestamp:Date.now(),correct:a.correct};
+                if(a.type==='open'){entry.userAnswer=a.userAnswer||'';entry.correctAnswer=a.correctAnswer||'';if(a.punctuationWarning)entry.punctuationWarning=true}
+                else if(a.type==='choice'){entry.chosenIdx=a.chosenIdx;entry.options=a.options;entry.correctIdx=a.correctIdx}
+                // Защита от дубликатов: проверяем, нет ли уже такой записи в истории
+                var isDuplicate=qp.history.some(function(existing){
+                    return (entry.timestamp-existing.timestamp<DUPES_WINDOW_MS)&&
+                        existing.correct===entry.correct&&
+                        existing.userAnswer===entry.userAnswer&&
+                        existing.chosenIdx===entry.chosenIdx;
+                });
+                if(!isDuplicate){
+                    qp.history.push(entry);
+                }
+            });
+        }
+        tp.testHistory.push({timestamp:Date.now(),score:score,total:total,percentage:Math.round(score/total*100)});
+        answers.forEach(function(a){
+            pendingResults.push({
+                topicId:topicId,isFinalTest:isFinal,
+                question:a.question,type:a.type,correct:a.correct,timestamp:Date.now(),
+                userAnswer:a.userAnswer,chosenIdx:a.chosenIdx,options:a.options,correctIdx:a.correctIdx,
+                correctAnswer:a.correctAnswer,punctuationWarning:a.punctuationWarning,
+                score:isFinal?score:undefined,total:isFinal?total:undefined,percentage:isFinal?Math.round(score/total*100):undefined,
+                answers:isFinal?answers.map(function(x){return{question:x.question,correct:x.correct,userAnswer:x.userAnswer,chosenIdx:x.chosenIdx}}):undefined
+            });
+        });
+        if(!isFinal){
+            var allQ=(D.topics.find(function(t){return t.id===topicId})||{}).test||[];
+            var allMastered=allQ.every(function(q){var st=tp.questions[safeKey(q.question)]||{correctCount:0};return(st.correctCount||0)>=getMaxNeeded(st,tp.levelUpAt)});
+            if(allMastered&&allQ.length>0)tp.finalTestPending=true;
+        }
+        // Если это итоговый тест — повышаем уровень и сбрасываем прогресс вопросов
+        if(isFinal){
+            tp.level=(tp.level||1)+1;
+            tp.levelUpAt=Date.now();
+            tp.finalTestPending=false;
+            // Сбрасываем шкалы вопросов (сохраняем modifier)
+            if(tp.questions){
+                Object.keys(tp.questions).forEach(function(k){
+                    var qp=tp.questions[k];
+                    qp.correctCount=0;
+                    qp.wrongCount=0;
+                    qp.firstCorrect=false;
+                    qp.history=[];
+                });
+            }
+        }
+        saveState();
+        // Очищаем дубликаты после каждого теста, чтобы correctCount был консистентным
+        cleanupDuplicateAnswers();
+        render();
+        var perc=Math.round(score/total*100);
+        var resultHtml='<div style="text-align:center"><h2>🎉 Тест завершён!</h2><p style="font-size:2rem;margin:1rem 0">'+score+'/'+total+'</p><p>Правильных ответов: <strong>'+perc+'%</strong></p>';
+        if(isFinal)resultHtml+='<p style="color:var(--accent);font-weight:600">Уровень повышен до '+(tp.level||1)+'! 🏆</p>';
+        else{
+            var allQ2=(D.topics.find(function(t){return t.id===topicId})||{}).test||[];
+            var allMastered2=allQ2.every(function(q){var st=tp.questions[safeKey(q.question)]||{correctCount:0};return(st.correctCount||0)>=getMaxNeeded(st,tp.levelUpAt)});
+            if(allMastered2&&allQ2.length>0)resultHtml+='<p style="color:#2980b9;font-weight:600;margin-top:1rem">🎯 Все задания освоены!</p>';
+        }
+        resultHtml+='</div>';
+        showModal(resultHtml);
+    }
+    renderQuestion();
+}
+
+// ===================== ОЧИСТКА ДУБЛИКАТОВ =====================
+// Полная копия логики из student.html cleanupDuplicateAnswers()
+// Вызывается после каждого теста, чтобы correctCount был консистентным
+function cleanupDuplicateAnswers(){
+    var DUPES_WINDOW_MS_LOCAL = 8000;
+    var totalRemoved = 0;
+    var changedTopics = 0;
+    for (var tId in localProgress) {
+        if (!localProgress.hasOwnProperty(tId)) continue;
+        var tp = localProgress[tId];
+        var questions = tp.questions || {};
+        var topicChanged = false;
+        for (var qKey in questions) {
+            if (!questions.hasOwnProperty(qKey)) continue;
+            var qData = questions[qKey];
+            var history = qData.history || [];
+            if (history.length < 2) continue;
+            // Сортируем по timestamp
+            var sorted = history.slice().sort(function(a,b){return (a.timestamp||0)-(b.timestamp||0)});
+            var toRemove = [];
+            // Находим дубликаты (записи в пределах 8 секунд друг от друга)
+            for (var i = 1; i < sorted.length; i++) {
+                var prev = sorted[i-1];
+                var curr = sorted[i];
+                var diff = (curr.timestamp||0) - (prev.timestamp||0);
+                if (diff >= 0 && diff <= DUPES_WINDOW_MS_LOCAL) {
+                    toRemove.push(curr);
+                }
+            }
+            if (toRemove.length > 0) {
+                // Фильтруем, удаляя дубликаты
+                var filtered = sorted.filter(function(rec){
+                    for (var d = 0; d < toRemove.length; d++) {
+                        var dup = toRemove[d];
+                        if (dup.timestamp === rec.timestamp &&
+                            dup.userAnswer === rec.userAnswer &&
+                            dup.correct === rec.correct &&
+                            dup.chosenIdx === rec.chosenIdx) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                // Пересчитываем correctCount
+                var maxNeeded = getMaxNeeded(qData, tp.levelUpAt);
+                var levelUpAt = tp.levelUpAt || 0;
+                var recalcCorrectCount = 0;
+                for (var h = 0; h < filtered.length; h++) {
+                    var hRec = filtered[h];
+                    if (levelUpAt > 0 && hRec.timestamp < levelUpAt) continue;
+                    if (hRec.correct) {
+                        recalcCorrectCount = Math.min(maxNeeded, recalcCorrectCount + 1);
+                    } else {
+                        recalcCorrectCount = Math.max(0, recalcCorrectCount - 1);
+                    }
+                }
+                totalRemoved += toRemove.length;
+                qData.history = filtered;
+                qData.correctCount = recalcCorrectCount;
+                topicChanged = true;
+            }
+        }
+        if (topicChanged) changedTopics++;
+    }
+    if (totalRemoved > 0) {
+        saveState();
+    }
+    return {removed: totalRemoved, topics: changedTopics};
+}
+
+// ===================== ЭКСПОРТ =====================
+function exportResults(){
+    if(!pendingResults.length){notify('Нет результатов для экспорта.','error',3000);return}
+    var data={student:{uid:D.student.uid,name:D.student.name,teacherId:D.student.teacherId},results:pendingResults,exportedAt:Date.now()};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='forestudy_results_'+D.student.uid+'.forestudy';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    notify('✅ Файл результатов скачан! Загрузите его в онлайн-версию.','success',5000);
+}
+
+// ===================== ЗАПУСК =====================
+render();
+</script>
+</body>
+</html>

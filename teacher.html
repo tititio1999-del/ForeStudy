@@ -1,0 +1,2856 @@
+и<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForeStudy — Учитель</title>
+    <style>
+        :root {
+            --bg: #f5f7fb; --surface: #fff; --text: #1a1a2e; --text-secondary: #555;
+            --accent: #2e7d32; --accent-hover: #1b5e20; --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08); --header-bg: #ffffffcc; --backdrop: blur(10px);
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a; --surface: #1e293b; --text: #e2e8f0; --text-secondary: #94a3b8;
+            --accent: #4caf50; --accent-hover: #388e3c; --border: #334155;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4); --header-bg: #1e293bcc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        .header { position: sticky; top: 0; z-index: 50; background: var(--header-bg); backdrop-filter: var(--backdrop); border-bottom: 1px solid var(--border); box-shadow: var(--shadow); padding: 0.5rem 1.5rem; }
+        .top-line { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+        .logo { font-weight: 700; font-size: 1.8rem; color: #2e7d32; display: flex; align-items: center; gap: 0.5rem; }
+        [data-theme="dark"] .logo { color: #4caf50; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+        .status-dot.online { background: #10b981; } .status-dot.offline { background: #ef4444; }
+        .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text); }
+        .nav { display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .nav-btn { background: none; border: none; padding: 0.5rem 1.2rem; border-radius: 2rem; font-weight: 600; cursor: pointer; color: var(--text); }
+        .nav-btn.active { background: var(--accent); color: white; }
+        .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; flex: 1; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; background: var(--accent); color: white; font-size: 0.9rem; transition: background 0.2s; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn.outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        .btn.outline:hover { background: var(--accent); color: white; }
+        .btn.danger { background: #b91c1c; }
+        .btn.small { padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+        .section-title { font-size: 1.3rem; font-weight: 700; margin: 1.5rem 0 1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.75rem; border-bottom: 1px solid var(--border); text-align: left; }
+        th { color: var(--text-secondary); font-weight: 600; }
+        .deleted-row { opacity: 0.5; background: var(--bg); }
+        .menu-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text); padding: 0.2rem 0.5rem; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; background: var(--surface); min-width: 160px; box-shadow: var(--shadow); border-radius: 12px; border: 1px solid var(--border); z-index: 60; }
+        .dropdown-content button { display: block; width: 100%; padding: 0.5rem 1rem; background: none; border: none; text-align: left; color: var(--text); cursor: pointer; font-size: 0.9rem; }
+        .dropdown-content button:hover { background: var(--bg); }
+        .empty-message { color: var(--text-secondary); font-style: italic; padding: 2rem 0; text-align: center; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 1rem; }
+        .modal-content { background: var(--surface); padding: 2rem; border-radius: 16px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 0.5rem; right: 0.8rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+        .question-block { border: 2px solid var(--accent); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem; background: var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        [data-theme="dark"] .question-block { border-color: #4caf50; background: #1a2a1a; }
+        .question-separator { height: 1px; background: var(--border); margin: 0.8rem 0; }
+        .question-label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .question-actions { margin-top: 1rem; display: flex; justify-content: flex-end; }
+        .option-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+        .option-row input[type="radio"] { width: auto; }
+        textarea, input[type="text"], input[type="number"], select { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; background: var(--surface); color: var(--text); font-family: inherit; width: 100%; }
+        .progress-bar { height: 8px; border-radius: 4px; background: var(--border); margin: 0.3rem 0; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+        .error-progress-fill { background: #b91c1c; }
+        .deficit-progress-fill { background: #eab308; }
+        .question-progress-item { display: flex; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+        .topic-header { cursor: pointer; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; margin: 0.5rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .topic-header:hover { background: var(--bg); }
+        .question-link { cursor: pointer; }
+        .question-link:hover { text-decoration: underline; }
+        .error-box { background: #fee; border: 1px solid #fcc; color: #c00; padding: 1rem; border-radius: 8px; margin: 1rem 0; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; }
+        [data-theme="dark"] .error-box { background: #441111; border-color: #661111; color: #ff6666; }
+        .img-preview-circle { width: 100px; height: 100px; border-radius: 50%; background-size: cover; background-position: center; margin: 0.5rem 0; border: 2px solid var(--accent); display: inline-block; }
+        .settings-section { width: 100%; }
+        .settings-section h3 { padding: 0.8rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin: 0; }
+        .settings-section .section-content { padding: 1.5rem; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; }
+        .img-controls { margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .settings-section { margin-bottom: 2rem; }
+        .settings-section h3.section-toggle { padding: 0.8rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin: 0 0 0.5rem 0; width: 100%; font-size: 1.1rem; cursor: pointer; user-select: none; }
+        .settings-section .section-content { padding: 1.5rem; border: 1px solid var(--border); border-radius: 8px; margin-top: -2px; background: var(--surface); }
+        .settings-section { width: 100%; }
+        .history-block { border-bottom: 1px solid var(--border); padding: 0.5rem 0; margin-bottom: 0.5rem; }
+        .history-answer { margin: 0.3rem 0; font-size: 0.95rem; line-height: 1.4; }
+        .diff-correct { background-color: #d4edda; padding: 0; border-radius: 2px; }
+        .diff-wrong { background-color: #f8d7da; padding: 0; border-radius: 2px; }
+        .history-answer span { font-size: inherit; font-family: inherit; letter-spacing: 0; }
+        
+        .section-toggle { cursor: pointer; user-select: none; }
+        .section-content { display: none; margin-top: 1.5rem; }
+        @media (max-width: 600px) { .header { padding: 0.5rem 1rem; } .logo { font-size: 1.4rem; } .container { padding: 0 0.5rem; } }
+        
+        .resizable-image-container { display:inline-block; position:relative; max-width:100%; }
+        .resizable-image { display:block; max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border); }
+        .resize-handle { position:absolute; bottom:0; right:0; width:16px; height:16px; cursor:nwse-resize; background:rgba(0,0,0,0.3); border-radius:0 0 8px 0; }
+        .resize-handle::after { content:''; position:absolute; bottom:3px; right:3px; width:8px; height:8px; border-right:2px solid white; border-bottom:2px solid white; }
+        
+        /* Стили для призраков */
+        .ghost-row { background: rgba(155, 89, 182, 0.08); }
+        .ghost-row td:first-child { color: #8e44ad; }
+        [data-theme="dark"] .ghost-row { background: rgba(155, 89, 182, 0.15); }
+        [data-theme="dark"] .ghost-row td:first-child { color: #bb8fce; }
+        
+        /* Стили для auditLog */
+        .audit-entry { border-left: 3px solid var(--accent); padding: 0.6rem 1rem; margin: 0.5rem 0; background: var(--surface); border-radius: 0 8px 8px 0; }
+        .audit-entry.levelUp { border-left-color: #f59e0b; }
+        .audit-entry.manual { border-left-color: #8b5cf6; }
+        .audit-entry .audit-time { font-size: 0.8rem; color: var(--text-secondary); }
+        .audit-entry .audit-desc { margin: 0.2rem 0; }
+        .audit-entry .audit-badge { display: inline-block; font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 10px; font-weight: 600; }
+        .audit-entry .audit-badge.levelUp { background: #fef3c7; color: #92400e; }
+        .audit-entry .audit-badge.manual { background: #ede9fe; color: #5b21b6; }
+        .audit-entry.levelDown { border-left-color: #ef4444; }
+        .audit-entry .audit-badge.levelDown { background: #fee2e2; color: #991b1b; }
+        [data-theme="dark"] .audit-entry .audit-badge.levelUp { background: #78350f; color: #fde68a; }
+        [data-theme="dark"] .audit-entry .audit-badge.manual { background: #3b0764; color: #c4b5fd; }
+        [data-theme="dark"] .audit-entry .audit-badge.levelDown { background: #7f1d1d; color: #fca5a5; }
+        .audit-entry.applied { border-left-color: #10b981; }
+        .audit-entry .audit-badge.applied { background: #d1fae5; color: #065f46; }
+        [data-theme="dark"] .audit-entry .audit-badge.applied { background: #064e3b; color: #6ee7b7; }
+        .audit-applied-mark { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #10b981; font-weight: 600; margin-top: 0.3rem; }
+        
+        /* Стили для календаря статистики по датам */
+        .date-stats-student { margin-bottom: 1rem; }
+        .date-stats-student .student-header { cursor: pointer; padding: 0.8rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; user-select: none; }
+        .date-stats-student .student-header:hover { background: var(--bg); }
+        .date-stats-student .student-content { display: none; padding: 1.5rem; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; background: var(--surface); }
+        .calendar-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; justify-content: center; }
+        .calendar-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.8rem; cursor: pointer; color: var(--text); font-size: 1rem; }
+        .calendar-nav button:hover { background: var(--bg); }
+        .calendar-nav span { font-weight: 600; font-size: 1.1rem; min-width: 180px; text-align: center; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 0.5rem; }
+        .calendar-grid .day-header { text-align: center; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); padding: 0.3rem 0; }
+        .calendar-grid .day-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; position: relative; transition: transform 0.15s, box-shadow 0.15s; min-height: 36px; }
+        .calendar-grid .day-cell:hover { transform: scale(1.1); box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 2; }
+        .calendar-grid .day-cell.other-month { opacity: 0.3; }
+        .calendar-grid .day-cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+        .calendar-grid .day-cell .day-number { position: relative; z-index: 1; text-shadow: 0 0 3px rgba(255,255,255,0.8); }
+        [data-theme="dark"] .calendar-grid .day-cell .day-number { text-shadow: 0 0 3px rgba(0,0,0,0.8); }
+        /* Цвета для ячеек в зависимости от процента выполнения нормы */
+        .calendar-grid .day-cell.level-0 { background: #fef3c7; color: #92400e; }
+        .calendar-grid .day-cell.level-1 { background: #fde68a; color: #92400e; }
+        .calendar-grid .day-cell.level-2 { background: #fcd34d; color: #78350f; }
+        .calendar-grid .day-cell.level-3 { background: #bbf7d0; color: #166534; }
+        .calendar-grid .day-cell.level-4 { background: #86efac; color: #14532d; }
+        .calendar-grid .day-cell.level-5 { background: #4ade80; color: #052e16; }
+        .calendar-grid .day-cell.level-6 { background: #22c55e; color: #052e16; }
+        .calendar-grid .day-cell.level-7 { background: #16a34a; color: #f0fdf4; }
+        .calendar-grid .day-cell.level-8 { background: #15803d; color: #f0fdf4; }
+        .calendar-grid .day-cell.no-data { background: transparent; color: var(--text-secondary); cursor: default; }
+        .calendar-grid .day-cell.no-data:hover { transform: none; box-shadow: none; }
+        /* Боковая панель статистики */
+        .day-stats-panel { position: fixed; top: 0; right: 0; width: 320px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 200; padding: 1.5rem; overflow-y: auto; transform: translateX(100%); transition: transform 0.3s ease; }
+        .day-stats-panel.open { transform: translateX(0); }
+        .day-stats-panel .panel-close { position: absolute; top: 0.8rem; right: 0.8rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+        .day-stats-panel h3 { margin-bottom: 1rem; }
+        .day-stats-panel .stat-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .day-stats-panel .stat-row .label { color: var(--text-secondary); }
+        .day-stats-panel .stat-row .value { font-weight: 600; }
+        .day-stats-panel .stat-row .value.correct { color: #16a34a; }
+        .day-stats-panel .stat-row .value.wrong { color: #dc2626; }
+        /* Tooltip */
+        .day-cell-tooltip { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.8rem; box-shadow: var(--shadow); font-size: 0.85rem; z-index: 300; pointer-events: none; white-space: nowrap; }
+        .day-cell-tooltip .tooltip-title { font-weight: 600; margin-bottom: 0.2rem; }
+        .day-cell-tooltip .tooltip-row { display: flex; gap: 0.5rem; }
+        .day-cell-tooltip .tooltip-row .correct { color: #16a34a; }
+        .day-cell-tooltip .tooltip-row .wrong { color: #dc2626; }
+        /* Поле нормы */
+        .norm-input { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .norm-input label { font-size: 0.9rem; color: var(--text-secondary); }
+        .norm-input input { width: 80px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; text-align: center; }
+        .norm-input button { padding: 0.3rem 0.8rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="top-line"><div class="logo"><span class="status-dot" id="connectionDot"></span> ForeStudy · Учитель</div><button id="themeToggle" class="theme-toggle">🌙</button></div>
+        <nav class="nav">
+            <button class="nav-btn active" data-tab="students">👥 Ученики</button>
+            <button class="nav-btn" data-tab="topics">📚 Темы</button>
+            <button class="nav-btn" data-tab="settings">⚙️ Настройки</button>
+            <button class="nav-btn" data-tab="questions">❓ Вопросы</button>
+            <button class="nav-btn" data-tab="auditLog">📋 Журнал</button>
+            <button class="nav-btn" data-tab="dateStats">📅 Статистика по датам</button>
+        </nav>
+    </header>
+    <main class="container" id="app"></main>
+
+    <script src="config.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove, get, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        if (!window.firebaseConfig) { alert('config.js не загружен'); throw new Error('Missing config'); }
+        const app = initializeApp(window.firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth();
+        await signInAnonymously(auth);
+        console.log('✅ Учитель аутентифицирован анонимно');
+        
+
+        const connectionDot = document.getElementById('connectionDot');
+        onValue(ref(db, '.info/connected'), snap => { connectionDot.className = 'status-dot ' + (snap.val() === true ? 'online' : 'offline'); });
+
+        // ========== НОВАЯ ЛОГИКА ВХОДА УЧИТЕЛЯ ==========
+        let teacherId = null;
+        
+        function showTeacherLoginDialog() {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop';
+                backdrop.style.zIndex = '10000';
+                
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'modal-content';
+                modalDiv.style.maxWidth = '400px';
+                modalDiv.style.textAlign = 'center';
+                modalDiv.innerHTML = `
+                    <h3>🔐 Вход для учителя</h3>
+                    <p style="margin:1rem 0;">Введите ID учителя или оставьте поле пустым для создания нового:</p>
+                    <input type="text" id="teacherIdInput" placeholder="ID учителя (например, tch_...)" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid #ccc;">
+                    <div style="display:flex; gap:0.5rem;">
+                        <button id="loginBtn" class="btn">Войти / Создать</button>
+                    </div>
+                    <div id="errMsg" style="color:#ef4444; margin-top:0.8rem;"></div>
+                `;
+                backdrop.appendChild(modalDiv);
+                document.body.appendChild(backdrop);
+                
+                const input = modalDiv.querySelector('#teacherIdInput');
+                const loginBtn = modalDiv.querySelector('#loginBtn');
+                const errMsg = modalDiv.querySelector('#errMsg');
+                
+                function submit() {
+                    let id = input.value.trim();
+                    if (id === '') {
+                        id = 'tch_' + Math.random().toString(36).substr(2,8) + Date.now().toString(36).substr(2,4);
+                    }
+                    document.body.removeChild(backdrop);
+                    resolve(id);
+                }
+                
+                loginBtn.onclick = submit;
+                input.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+                backdrop.addEventListener('click', (e) => { if (e.target === backdrop) { document.body.removeChild(backdrop); resolve(null); } });
+            });
+        }
+        
+        teacherId = await showTeacherLoginDialog();
+        if (!teacherId) {
+            document.getElementById('app').innerHTML = '<div class="empty-message" style="text-align:center; margin-top:3rem;"><h2>❌ Доступ запрещён</h2></div>';
+            throw new Error('Unauthorized');
+        }
+        localStorage.setItem('teacher_id', teacherId);
+        // ========== УСТАНОВКА / ПРОВЕРКА ПАРОЛЯ УЧИТЕЛЯ ==========
+        async function hashPassword(pwd, salt) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd + salt);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+        }
+
+        function showPasswordDialog(isSetup) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop';
+                backdrop.style.zIndex = '10001';
+                
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'modal-content';
+                modalDiv.style.maxWidth = '400px';
+                modalDiv.style.textAlign = 'center';
+                
+                if (isSetup) {
+                    modalDiv.innerHTML = `
+                        <h3>🔐 Установка пароля</h3>
+                        <p style="margin:1rem 0;">Придумайте пароль для входа в панель учителя.<br><strong>Не потеряйте его!</strong></p>
+                        <input type="password" id="pwd1" placeholder="Пароль" style="width:100%; padding:0.8rem; margin-bottom:0.8rem; border-radius:8px; border:1px solid #ccc;">
+                        <input type="password" id="pwd2" placeholder="Подтвердите пароль" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid #ccc;">
+                        <button id="okBtn" class="btn" style="width:100%;">Сохранить</button>
+                        <div id="errMsg" style="color:#ef4444; margin-top:0.8rem;"></div>
+                    `;
+                } else {
+                    modalDiv.innerHTML = `
+                        <h3>🔐 Вход для учителя</h3>
+                        <p style="margin:1rem 0;">Введите пароль:</p>
+                        <input type="password" id="pwd1" placeholder="Пароль" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid #ccc;">
+                        <button id="okBtn" class="btn" style="width:100%;">Войти</button>
+                        <div id="errMsg" style="color:#ef4444; margin-top:0.8rem;"></div>
+                    `;
+                }
+                
+                backdrop.appendChild(modalDiv);
+                document.body.appendChild(backdrop);
+                
+                const pwd1 = modalDiv.querySelector('#pwd1');
+                const pwd2 = modalDiv.querySelector('#pwd2');
+                const okBtn = modalDiv.querySelector('#okBtn');
+                const errMsg = modalDiv.querySelector('#errMsg');
+                
+                function submit() {
+                    const pwd = pwd1.value;
+                    if (isSetup) {
+                        const pwdConfirm = pwd2 ? pwd2.value : '';
+                        if (!pwd) {
+                            errMsg.textContent = 'Введите пароль';
+                            return;
+                        }
+                        if (pwd !== pwdConfirm) {
+                            errMsg.textContent = 'Пароли не совпадают';
+                            return;
+                        }
+                        if (pwd.length < 4) {
+                            errMsg.textContent = 'Пароль должен быть не менее 4 символов';
+                            return;
+                        }
+                        document.body.removeChild(backdrop);
+                        resolve(pwd);
+                    } else {
+                        if (!pwd) {
+                            errMsg.textContent = 'Введите пароль';
+                            return;
+                        }
+                        document.body.removeChild(backdrop);
+                        resolve(pwd);
+                    }
+                }
+                
+                okBtn.onclick = submit;
+                pwd1.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+                if (pwd2) pwd2.addEventListener('keypress', (e) => { if (e.key === 'Enter') submit(); });
+                backdrop.addEventListener('click', (e) => { if (e.target === backdrop) { document.body.removeChild(backdrop); resolve(null); } });
+            });
+        }
+
+        async function initAuth() {
+            const saltSnap = await get(ref(db, `teachers/${teacherId}/_salt`));
+            const hashSnap = await get(ref(db, `teachers/${teacherId}/_hash`));
+            
+            // Если пароля нет (новый учитель или старый без пароля) — предлагаем установить
+            if (!saltSnap.exists() || !hashSnap.exists()) {
+                const newPassword = await showPasswordDialog(true);
+                if (!newPassword) return false;
+                const salt = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+                const hash = await hashPassword(newPassword, salt);
+                await set(ref(db, `teachers/${teacherId}/_salt`), salt);
+                await set(ref(db, `teachers/${teacherId}/_hash`), hash);
+                sessionStorage.setItem('teacher_auth', 'true');
+                return true;
+            }
+            
+            // Проверяем, авторизован ли уже в этой сессии
+            const isAuth = sessionStorage.getItem('teacher_auth');
+            if (isAuth === 'true') return true;
+            
+            // Запрашиваем пароль
+            const pwd = await showPasswordDialog(false);
+            if (!pwd) return false;
+            const salt = saltSnap.val();
+            const hash = await hashPassword(pwd, salt);
+            if (hash === hashSnap.val()) {
+                sessionStorage.setItem('teacher_auth', 'true');
+                return true;
+            } else {
+                alert('❌ Неверный пароль.');
+                return false;
+            }
+        }
+
+        const authOk = await initAuth();
+        if (!authOk) {
+            document.getElementById('app').innerHTML = '<div class="empty-message" style="text-align:center; margin-top:3rem;"><h2>❌ Доступ запрещён</h2></div>';
+            throw new Error('Unauthorized');
+        }
+        
+        let theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('themeToggle').textContent = theme==='light'?'🌙':'☀️';
+        document.getElementById('themeToggle').onclick = ()=>{
+            theme = theme==='light'?'dark':'light';
+            localStorage.setItem('theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('themeToggle').textContent = theme==='light'?'🌙':'☀️';
+        };
+
+        document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{
+            document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+            b.classList.add('active');
+            renderTab(b.dataset.tab);
+        }));
+
+        function escapeHtml(text) { if(!text) return ''; const map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}; return String(text).replace(/[&<>"']/g, m=>map[m]); }
+        function safeKey(str) { if(!str) return 'empty'; return 'q_' + String(str).replace(/[^a-zA-Z0-9а-яА-ЯёЁ_]/g, '_').slice(0,200); }
+
+        async function renderTab(tab) {
+            document.getElementById('app').innerHTML='';
+            if(tab==='students') await renderStudentsTab();
+            else if(tab==='topics') await renderTopicsTab();
+            else if(tab==='settings') renderSettingsTab();
+            else if(tab==='questions') await renderQuestionsTab();
+            else if(tab==='auditLog') await renderAuditLogTab();
+            else if(tab==='dateStats') await renderDateStatsTab();
+        }
+
+        // ===================== УЧЕНИКИ =====================
+        async function renderStudentsTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="section-title">👥 Ученики и коды доступа</div>';
+            const codesDiv = document.createElement('div'); codesDiv.id='accessCodesSection'; app.appendChild(codesDiv);
+            const listDiv = document.createElement('div'); listDiv.id='studentsListSection'; app.appendChild(listDiv);
+            await renderAccessCodes(codesDiv);
+            await renderStudentsList(listDiv);
+        }
+        
+        // Вкладка "Вопросы" — список вопросов от всех учеников (в реальном времени)
+        async function renderQuestionsTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="section-title">❓ Вопросы учеников</div><div id="questionsList"></div>';
+            const listDiv = document.getElementById('questionsList');
+            const studentsRef = ref(db, `teachers/${teacherId}/students`);
+            onValue(studentsRef, snap => {
+                const studentsObj = snap.val() || {};
+                const items = [];
+                Object.entries(studentsObj).forEach(([uid, s]) => {
+                    const qs = s.questions || [];
+                    qs.forEach(q => {
+                        if (q.type === 'view') return;
+                        items.push(Object.assign({}, q, { uid, studentName: s.name || '—' }));
+                    });
+                });
+    
+                // сортируем по времени (последние сверху)
+                items.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+    
+                if (!items.length) {
+                    listDiv.innerHTML = '<div class="empty-message">Нет новых вопросов.</div>';
+                    return;
+                }
+    
+                 listDiv.innerHTML = items.map(it => {
+                     const date = new Date(it.timestamp).toLocaleString('ru-RU');
+                     const tq = JSON.stringify(it.taskQuestion || {}).replace(/'/g, "&#039;");
+                     const hasAnswer = it.answered === true;
+                     return `<div class="topic-card" data-uid="${it.uid}" data-ts="${it.timestamp}">
+                         <p style="margin-bottom:0.3rem;"><strong>${escapeHtml(it.questionText)}</strong></p>
+                         <p style="font-size:0.85rem;color:var(--text-secondary);">От: <strong>${escapeHtml(it.studentName)}</strong> • ${date}</p>
+                         <div style="margin-top:0.6rem;">
+                              <button class="btn small view-task" data-uid="${it.uid}" data-topicid="${it.topicId}" data-taskquestion='${tq}'>Просмотреть задание</button>
+                              <button class="btn small ${hasAnswer ? 'outline' : 'outline'}" data-uid="${it.uid}" data-ts="${it.timestamp}">${hasAnswer ? 'Просмотреть ответ' : 'Ответить'}</button>
+                              <button class="btn small danger delete-q" data-uid="${it.uid}" data-ts="${it.timestamp}">Удалить</button>
+                         </div>
+                     </div>`;
+                 }).join('');
+    
+                // Навешиваем обработчики
+                listDiv.querySelectorAll('.view-task').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const topicId = btn.dataset.topicid;
+                        let taskQ;
+                        try { taskQ = JSON.parse(btn.dataset.taskquestion); } catch { taskQ = btn.dataset.taskquestion; }
+                        showTaskForTeacher(topicId, taskQ, btn.dataset.uid);
+                    });
+                });
+    
+    
+                listDiv.querySelectorAll('.delete-q').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Удалить этот вопрос?')) return;
+                        const uid = btn.dataset.uid;
+                        const ts = Number(btn.dataset.ts);
+                        const studentRef = ref(db, `teachers/${teacherId}/students/${uid}`);
+                        const snap2 = await get(studentRef);
+                        const student = snap2.val() || {};
+                        const qs = student.questions || [];
+                        const filtered = qs.filter(q => q.timestamp !== ts);
+                        await update(studentRef, { questions: filtered });
+                    });
+                });
+
+        listDiv.querySelectorAll('.reply-btn, .btn.small.outline').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const uid = btn.dataset.uid;
+                const ts = Number(btn.dataset.ts);
+                showReplyModal(uid, ts);
+            });
+        });
+            });
+        }
+
+        async function showReplyModal(uid, timestamp) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-backdrop';
+
+            // Получаем существующий ответ, если он есть
+            const studentRef = ref(db, `teachers/${teacherId}/students/${uid}`);
+            const snap = await get(studentRef);
+            const student = snap.val() || {};
+            const questions = student.questions || [];
+            const question = questions.find(q => q.timestamp === timestamp);
+            const existingReply = question?.teacherReply || '';
+            const repliedAt = question?.repliedAt || null;
+
+            let modalTitle = 'Ответить ученику';
+            let buttonText = 'Отправить';
+            let textareaDisabled = false;
+
+            if (existingReply) {
+                modalTitle = 'Просмотр ответа';
+                buttonText = 'Редактировать';
+                textareaDisabled = true;
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <button class="modal-close">&times;</button>
+                    <h3>${modalTitle}</h3>
+                    ${repliedAt ? `<p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Отвечено: ${new Date(repliedAt).toLocaleString('ru-RU')}
+                    </p>` : ''}
+                    <div style="margin: 1.5rem 0;">
+                        <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Ваш ответ</label>
+                        <textarea id="replyText" style="width:100%; height:150px; padding:0.8rem; border:1px solid var(--border); border-radius:8px; font-family:inherit;" ${textareaDisabled ? 'readonly' : ''}>${escapeHtml(existingReply)}</textarea>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
+                        <button class="btn" id="sendReply">${buttonText}</button>
+                        <button class="btn outline" id="cancelReply">Отмена</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const textArea = modal.querySelector('#replyText');
+            const sendBtn = modal.querySelector('#sendReply');
+            const cancelBtn = modal.querySelector('#cancelReply');
+
+            // Функция для отправки/обновления ответа
+            async function sendOrUpdateReply() {
+                const replyText = textArea.value.trim();
+                if (!replyText) {
+                    alert('Введите текст ответа');
+                    return;
+                }
+
+                try {
+                    const updatedQuestions = questions.map(q => {
+                        if (q.timestamp === timestamp) {
+                            return Object.assign({}, q, {
+                                teacherReply: replyText,
+                                repliedAt: Date.now(),
+                                answered: true,
+                                answeredAt: Date.now()
+                            });
+                        }
+                        return q;
+                    });
+
+                    await update(studentRef, { questions: updatedQuestions });
+                    modal.remove();
+                    alert(existingReply ? 'Ответ обновлён!' : 'Ответ отправлен ученику!');
+                } catch (error) {
+                    console.error('Ошибка при отправке ответа:', error);
+                    alert('Ошибка при отправке ответа: ' + error.message);
+                }
+            }
+
+            // Функция для включения редактирования
+            function enableEditing() {
+                textArea.removeAttribute('readonly');
+                sendBtn.textContent = 'Обновить ответ';
+                sendBtn.onclick = sendOrUpdateReply;
+                textArea.focus();
+            }
+
+            if (existingReply) {
+                // Если ответ уже существует, делаем кнопку "Редактировать"
+                sendBtn.onclick = enableEditing;
+            } else {
+                // Если ответа нет, делаем кнопку "Отправить"
+                sendBtn.onclick = sendOrUpdateReply;
+            }
+
+            cancelBtn.onclick = () => {
+                const text = textArea.value.trim();
+                const originalText = existingReply || '';
+                if (text !== originalText && !confirm('Вы действительно хотите выйти? Введённый текст будет потерян.')) return;
+                modal.remove();
+            };
+
+            modal.querySelector('.modal-close').onclick = () => {
+                const text = textArea.value.trim();
+                const originalText = existingReply || '';
+                if (text !== originalText && !confirm('Вы действительно хотите выйти? Введённый текст будет потерян.')) return;
+                modal.remove();
+            };
+
+            modal.addEventListener('click', e => {
+                if (e.target === modal) {
+                    const text = textArea.value.trim();
+                    const originalText = existingReply || '';
+                    if (text !== originalText && !confirm('Вы действительно хотите выйти? Введённый текст будет потерян.')) return;
+                    modal.remove();
+                }
+            });
+        }
+
+        async function renderAccessCodes(container) {
+            // Новая система: коды доступа не используются
+            // Ученики регистрируются сами через логин/пароль
+            container.innerHTML = `
+                <div style="background: var(--bg); border-radius: 12px; padding: 1rem; margin: 1rem 0;">
+                    <p style="margin-bottom: 0.5rem;">🔐 <strong>Новая система входа для учеников</strong></p>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                        Ученики сами создают логин (псевдоним) и пароль на странице ученика.<br>
+                        Учитель может назначать темы и отслеживать прогресс.
+                    </p>
+                </div>
+            `;
+        }
+
+        async function renderStudentsList(container) {
+            const studentsRef = ref(db, `teachers/${teacherId}/students`);
+            onValue(studentsRef, async snap => {
+                const studentsObj = snap.val() || {};
+                const students = Object.entries(studentsObj).map(([id,data])=>({id,...data}));
+                let html = '<table><tr><th>Имя</th><th>Код</th><th>Темы</th><th>Действия</th></tr>';
+                students.forEach(s => {
+                    const passed = s.topicProgress ? Object.keys(s.topicProgress).length : 0;
+                    const isGhost = s.isGhost === true;
+                    const nameDisplay = isGhost ? `👻 ${escapeHtml(s.name)}` : escapeHtml(s.name);
+                    const rowClass = s.deleted ? 'deleted-row' : (isGhost ? 'ghost-row' : '');
+                    html += `<tr class="${rowClass}"><td>${nameDisplay}</td><td>${escapeHtml(s.accessCodeUsed||'—')}</td><td>${passed}</td><td><div class="dropdown"><button class="menu-btn">⋮</button><div class="dropdown-content"><button class="view-details" data-uid="${s.id}">📊 Успеваемость</button><button class="view-final-tests" data-uid="${s.id}">📝 Итоговые тесты</button><button class="manage-topics" data-uid="${s.id}">📚 Назначить темы</button>${!s.deleted?`<button class="delete-student" data-uid="${s.id}">🗑 Удалить</button>`:`<button class="restore-student" data-uid="${s.id}">🔄 Восстановить</button>`}${!s.deleted && !isGhost ? `<button class="create-ghost" data-uid="${s.id}">👻 Создать призрака</button>` : ''}</div></div></td></tr>`;
+                });
+                html += '</table>';
+                container.innerHTML = html;
+                container.querySelectorAll('.menu-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const dropdown = btn.nextElementSibling;
+                        if (!dropdown) return;
+                        document.querySelectorAll('.dropdown-content').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
+                        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                    });
+                });
+                document.addEventListener('click', () => document.querySelectorAll('.dropdown-content').forEach(d => d.style.display = 'none'));
+                container.querySelectorAll('.view-details').forEach(b => b.onclick = () => showStudentProgress(b.dataset.uid));
+                container.querySelectorAll('.view-final-tests').forEach(b => b.onclick = () => showFinalTests(b.dataset.uid));
+                container.querySelectorAll('.manage-topics').forEach(b => b.onclick = () => showTopicAssignmentModal(b.dataset.uid));
+                container.querySelectorAll('.delete-student').forEach(b => b.onclick = async () => { if(confirm('Удалить ученика?')) await update(ref(db,`teachers/${teacherId}/students/${b.dataset.uid}`),{deleted:true}) });
+                container.querySelectorAll('.restore-student').forEach(b => b.onclick = async () => await update(ref(db,`teachers/${teacherId}/students/${b.dataset.uid}`),{deleted:false}) );
+                container.querySelectorAll('.create-ghost').forEach(b => b.onclick = () => showCreateGhostDialog(b.dataset.uid));
+            });
+        }
+
+        // ===================== СОЗДАНИЕ ПРИЗРАКА =====================
+        async function showCreateGhostDialog(originalUid) {
+            const studentSnap = await get(ref(db, `teachers/${teacherId}/students/${originalUid}`));
+            if (!studentSnap.exists()) return alert('Ученик не найден');
+            const originalStudent = studentSnap.val();
+            
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:450px;">
+                    <button class="modal-close">&times;</button>
+                    <h3>👻 Создание призрака</h3>
+                    <p style="margin:1rem 0; color:var(--text-secondary);">
+                        Будет создана копия ученика <strong>${escapeHtml(originalStudent.name)}</strong> 
+                        с теми же темами, прогрессом и историей ответов.
+                    </p>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Логин для призрака:</label>
+                        <input type="text" id="ghostLogin" value="${escapeHtml(originalStudent.name)}_ghost" style="width:100%;">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Пароль для призрака:</label>
+                        <input type="password" id="ghostPassword" value="" placeholder="Придумайте пароль" style="width:100%;">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Подтвердите пароль:</label>
+                        <input type="password" id="ghostPasswordConfirm" value="" placeholder="Подтвердите пароль" style="width:100%;">
+                    </div>
+                    <div id="ghostError" style="color:#ef4444; margin-bottom:0.5rem;"></div>
+                    <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
+                        <button class="btn" id="createGhostBtn">👻 Создать призрака</button>
+                        <button class="btn outline" id="cancelGhostBtn">Отмена</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(backdrop);
+            
+            const errorDiv = backdrop.querySelector('#ghostError');
+            
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#cancelGhostBtn').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+            
+            backdrop.querySelector('#createGhostBtn').onclick = async () => {
+                const login = backdrop.querySelector('#ghostLogin').value.trim();
+                const password = backdrop.querySelector('#ghostPassword').value;
+                const passwordConfirm = backdrop.querySelector('#ghostPasswordConfirm').value;
+                
+                if (!login) { errorDiv.textContent = 'Введите логин'; return; }
+                if (!password) { errorDiv.textContent = 'Введите пароль'; return; }
+                if (password !== passwordConfirm) { errorDiv.textContent = 'Пароли не совпадают'; return; }
+                if (password.length < 6) { errorDiv.textContent = 'Пароль должен быть не менее 6 символов'; return; }
+                
+                // Проверяем, не занят ли логин
+                const credSnap = await get(ref(db, 'student_credentials'));
+                if (credSnap.exists()) {
+                    for (const [uid, data] of Object.entries(credSnap.val())) {
+                        if (data.nick === login) {
+                            errorDiv.textContent = 'Этот логин уже занят';
+                            return;
+                        }
+                    }
+                }
+                
+                try {
+                    // Генерируем UID для призрака
+                    const newUid = 'ghost_' + Math.random().toString(36).substr(2, 12) + Date.now().toString(36).substr(2, 6);
+                    
+                    // Копируем данные ученика с флагом isGhost
+                    const ghostData = JSON.parse(JSON.stringify(originalStudent));
+                    ghostData.name = login;
+                    ghostData.isGhost = true;
+                    ghostData.originalStudentId = originalUid;
+                    ghostData.createdAt = Date.now();
+                    delete ghostData.deleted;
+                    
+                    // Сохраняем призрака как нового ученика
+                    await set(ref(db, `teachers/${teacherId}/students/${newUid}`), ghostData);
+                    
+                    // Сохраняем credentials для входа (с хэшем пароля)
+                    const encoder = new TextEncoder();
+                    const pwdData = encoder.encode(password + login);
+                    const pwdHash = await crypto.subtle.digest('SHA-256', pwdData);
+                    const pwdHashHex = Array.from(new Uint8Array(pwdHash)).map(b => b.toString(16).padStart(2,'0')).join('');
+                    
+                    await set(ref(db, `student_credentials/${newUid}`), {
+                        nick: login,
+                        passwordHash: pwdHashHex,
+                        createdAt: Date.now(),
+                        teacherId: teacherId,
+                        isGhost: true
+                    });
+                    
+                    backdrop.remove();
+                    alert(`👻 Призрак "${login}" успешно создан!`);
+                } catch (error) {
+                    console.error(error);
+                    errorDiv.textContent = 'Ошибка: ' + error.message;
+                }
+            };
+        }
+
+        // ===================== УСПЕВАЕМОСТЬ =====================
+        async function showStudentProgress(uid) {
+            try {
+                const studentSnap = await get(ref(db,`teachers/${teacherId}/students/${uid}`));
+                if (!studentSnap.exists()) return alert('Ученик не найден');
+                const student = studentSnap.val();
+                const topicsSnap = await get(ref(db,`teachers/${teacherId}/topics`));
+                const topics = topicsSnap.val() ? Object.values(topicsSnap.val()) : [];
+                const progress = student.topicProgress || {};
+
+                const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+                let showErrors = false;
+
+                function renderContent() {
+                    let html = `<div class="modal-content"><button class="modal-close">&times;</button>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3>📊 ${escapeHtml(student.name)} – успеваемость</h3>
+                            <button class="btn small danger" id="toggleErrorsBtn">${showErrors?'Показать прогресс':'Показать ошибки'}</button>
+                        </div>`;
+                    topics.forEach(t => {
+                        const tp = progress[t.id];
+                        const level = tp ? tp.level||1 : 0;
+                        html += `<div class="topic-header" data-topicid="${t.id}"><strong>${escapeHtml(t.title)}</strong> <span>Уровень ${level} ▾</span></div><div id="topic-questions-${t.id}" style="display:none;">`;
+                        if (!t.test || t.test.length === 0) {
+                            html += '<p class="empty-message">Нет вопросов</p>';
+                        } else {
+                            t.test.forEach(q => {
+                                const key = safeKey(q.question);
+                                const qp = tp?.questions?.[key];
+                                const cnt = showErrors ? (qp?.history?.filter(h=>!h.correct).length || 0) : (qp?.correctCount || 0);
+                                const maxNeeded = (!showErrors && qp && qp.firstCorrect) ? 3 : 4;
+                                const max = showErrors ? 10 : maxNeeded;
+                                let pct, fillClass;
+                                if (!showErrors && cnt < 0) {
+                                    // Отрицательный correctCount — жёлтая шкала, длина от magnitude
+                                    const absCnt = Math.abs(cnt);
+                                    pct = Math.min(100, (absCnt/max)*100);
+                                    fillClass = 'deficit-progress-fill';
+                                } else {
+                                    pct = Math.min(100, (cnt/max)*100);
+                                    fillClass = showErrors ? 'error-progress-fill' : 'progress-fill';
+                                }
+                                html += `<div class="question-progress-item">
+                                    <span style="flex:1; font-size:0.85rem;" class="question-link" data-topicid="${t.id}" data-qtext="${escapeHtml(q.question)}">${escapeHtml(q.question)}</span>
+                                    <div class="progress-bar" style="width:100px;"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+                                    <span style="font-size:0.8rem;">${cnt}/${max}${!showErrors && qp && qp.modifier > 0 ? `<span style="font-size:0.7rem; color:#d4a017; margin-left:0.3rem;"> (вес: +${qp.modifier}%)</span>` : ''}${!showErrors && qp && qp.firstCorrect ? `<span style="font-size:0.7rem; color:#10b981; margin-left:0.3rem;"> (ускоренный)</span>` : ''}</span>
+                                </div>`;
+                            });
+                        }
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                    backdrop.innerHTML = html;
+                    backdrop.querySelector('.modal-close').onclick = ()=>backdrop.remove();
+                    backdrop.querySelector('#toggleErrorsBtn').onclick = ()=>{ showErrors=!showErrors; renderContent(); };
+                    backdrop.querySelectorAll('.topic-header').forEach(header => {
+                        header.addEventListener('click', () => {
+                            const id = header.dataset.topicid;
+                            const div = document.getElementById(`topic-questions-${id}`);
+                            if (div) div.style.display = div.style.display === 'none' ? 'block' : 'none';
+                        });
+                    });
+                    backdrop.querySelectorAll('.question-link').forEach(link => {
+                        link.addEventListener('click', async () => {
+                            try {
+                                const topicId = link.dataset.topicid;
+                                const qtext = link.dataset.qtext;
+                                const tSnap = await get(ref(db,`teachers/${teacherId}/topics/${topicId}`));
+                                if (!tSnap.exists()) return alert('Тема не найдена');
+                                const topic = tSnap.val();
+                                const question = (topic.test||[]).find(q=>q.question===qtext);
+                                if (!question) return alert('Вопрос не найден');
+                                const freshStudentSnap = await get(ref(db,`teachers/${teacherId}/students/${uid}`));
+                                const freshProgress = freshStudentSnap.val()?.topicProgress?.[topicId];
+                                const key = safeKey(question.question);
+                                const hist = freshProgress?.questions?.[key]?.history || [];
+                                
+                                // Загружаем levelUp timestamps из auditLog для этого ученика+темы
+                                const auditSnap = await get(ref(db, `teachers/${teacherId}/auditLog`));
+                                const auditLog = auditSnap.val() || {};
+                                const levelUpTimestamps = [];
+                                for (const entry of Object.values(auditLog)) {
+                                    if (entry.type === 'levelUp' && entry.studentId === uid && entry.topicId === topicId) {
+                                        levelUpTimestamps.push(entry.timestamp);
+                                    }
+                                }
+                                levelUpTimestamps.sort((a, b) => a - b);
+                                
+                                showQuestionHistoryModal(question, hist, levelUpTimestamps);
+                            } catch (e) {
+                                alert('Ошибка при загрузке истории: ' + e.message);
+                            }
+                        });
+                    });
+                }
+                renderContent();
+                document.body.appendChild(backdrop);
+                backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+            } catch (error) {
+                alert('Ошибка загрузки статистики: ' + error.message);
+            }
+        }
+
+        // ===================== ИТОГОВЫЕ ТЕСТЫ =====================
+        async function showFinalTests(uid) {
+            try {
+                const studentSnap = await get(ref(db,`teachers/${teacherId}/students/${uid}`));
+                if (!studentSnap.exists()) return alert('Ученик не найден');
+                const student = studentSnap.val();
+                const finalTestsSnap = await get(ref(db, `teachers/${teacherId}/finalTests/${uid}`));
+                const finalTests = finalTestsSnap.val() || {};
+                const topicsSnap = await get(ref(db,`teachers/${teacherId}/topics`));
+                const topics = topicsSnap.val() ? Object.values(topicsSnap.val()) : {};
+
+                const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+
+                function renderContent() {
+                    let html = `<div class="modal-content" style="max-width:750px;"><button class="modal-close">&times;</button>
+                        <h3>📝 ${escapeHtml(student.name)} – итоговые тесты</h3>`;
+                    
+                    const testEntries = Object.entries(finalTests);
+                    if (testEntries.length === 0) {
+                        html += '<div class="empty-message">Нет пройденных итоговых тестов.</div>';
+                    } else {
+                        html += `<p style="color:var(--text-secondary); margin-bottom:1rem;">Пройдено итоговых тестов: ${testEntries.length}</p>`;
+                        testEntries.forEach(([topicId, testData]) => {
+                            const date = new Date(testData.timestamp).toLocaleString('ru-RU');
+                            const topicTitle = testData.topicTitle || topicId;
+                            const perc = testData.percentage || Math.round((testData.score / testData.total) * 100);
+                            const borderColor = perc >= 70 ? '#10b981' : (perc >= 50 ? '#f59e0b' : '#ef4444');
+                            html += `<div class="audit-entry" style="border-left-color: ${borderColor}; margin-bottom:1rem;">
+                                <div class="audit-time">📅 ${date}</div>
+                                <div class="audit-desc"><strong>${escapeHtml(topicTitle)}</strong></div>
+                                <div style="margin:0.5rem 0;">
+                                    <div class="progress-bar" style="width:100%;"><div class="progress-fill" style="width:${perc}%; ${perc < 70 ? 'background:#f59e0b;' : ''} ${perc < 50 ? 'background:#ef4444;' : ''}"></div></div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                    <span>Результат: <strong>${testData.score}/${testData.total}</strong> (${perc}%)</span>
+                                    <button class="btn small outline toggle-details" data-topicid="${topicId}">Подробнее ▾</button>
+                                </div>
+                                <div class="test-details" id="details-${topicId}" style="display:none; margin-top:1rem;">
+                                    <h4 style="margin-bottom:0.5rem;">Ответы:</h4>
+                                    ${(testData.answers || []).map((a, i) => {
+                                        const qColor = a.correct ? '#10b981' : '#ef4444';
+                                        return `<div style="border-left:3px solid ${qColor}; padding:0.3rem 0.5rem; margin:0.3rem 0; font-size:0.85rem;">
+                                            <span>${i + 1}. ${escapeHtml(a.question || '—')}</span>
+                                            <span style="float:right;">${a.correct ? '✅' : '❌'}</span>
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    html += `</div>`;
+                    backdrop.innerHTML = html;
+                    backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+                    backdrop.querySelectorAll('.toggle-details').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const topicId = btn.dataset.topicid;
+                            const details = document.getElementById(`details-${topicId}`);
+                            if (details) {
+                                const isHidden = details.style.display === 'none';
+                                details.style.display = isHidden ? 'block' : 'none';
+                                btn.textContent = isHidden ? 'Подробнее ▴' : 'Подробнее ▾';
+                            }
+                        });
+                    });
+                }
+                renderContent();
+                document.body.appendChild(backdrop);
+                backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+            } catch (error) {
+                alert('Ошибка загрузки итоговых тестов: ' + error.message);
+            }
+        }
+
+        async function showTaskForTeacher(topicId, taskQuestion, uid) {
+            const snap = await get(ref(db, `teachers/${teacherId}/topics/${topicId}`));
+            if (!snap.exists()) return;
+            const topic = snap.val();
+            // taskQuestion может быть объектом или строкой
+            const question = (topic.test || []).find(q => {
+                try {
+                    if (typeof taskQuestion === 'object') return JSON.stringify(q.question) === JSON.stringify(taskQuestion);
+                } catch (e) {}
+                return q.question === taskQuestion;
+            });
+            if (!question) return;
+            let history = [];
+            if (uid) {
+                try {
+                    const studentSnap = await get(ref(db, `teachers/${teacherId}/students/${uid}`));
+                    const student = studentSnap.val() || {};
+                    const tp = student.topicProgress?.[topicId];
+                    const key = safeKey(question.question);
+                    history = tp?.questions?.[key]?.history || [];
+                } catch (e) {
+                    console.error('Ошибка получения истории ученика:', e);
+                    history = [];
+                }
+            }
+            showQuestionHistoryModal(question, history);
+        }
+
+        // ===================== ИСТОРИЯ ОТВЕТОВ =====================
+        function showQuestionHistoryModal(q, history, levelUpTimestamps) {
+            const overlay = document.createElement('div'); overlay.className='modal-backdrop';
+            const imgHtml = q.image ? `<div class="resizable-image-container" style="margin-bottom:0.8rem;${q.imageWidth ? `width:${q.imageWidth}px;height:${q.imageHeight}px;` : ''}"><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+            
+            // Симулируем пересчёт correctCount как при очистке дубликатов
+            let simCorrectCount = 0;
+            let simModifier = 0;
+            let simFastTrack = false;
+            let simFirst = false;
+            let simTotalDeficit = 0;
+            let simLogLines = [];
+            let nextLevelUpIdx = 0;
+            const sorted = [...(history || [])].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+            
+            simLogLines.push(`🧮 <strong>Симуляция пересчёта correctCount</strong>`);
+            simLogLines.push(`   Уровней повышений (levelUp): ${(levelUpTimestamps||[]).length}`);
+            simLogLines.push(`   Всего записей в истории: ${sorted.length}`);
+            simLogLines.push(`   ─────────────────────────────`);
+            
+            for (const hRec of sorted) {
+                // Проверяем levelUp
+                while (nextLevelUpIdx < (levelUpTimestamps||[]).length && 
+                       (hRec.timestamp || 0) >= levelUpTimestamps[nextLevelUpIdx]) {
+                    const maxForLevel = simFastTrack ? 3 : 4;
+                    const deficit = Math.max(0, maxForLevel - simCorrectCount);
+                    simTotalDeficit += deficit;
+                    const luDate = new Date(levelUpTimestamps[nextLevelUpIdx]).toLocaleString('ru-RU');
+                    simLogLines.push(`   🔼 <strong>LEVEL UP</strong> в ${luDate}`);
+                    simLogLines.push(`      Было баллов: ${simCorrectCount}/${maxForLevel}`);
+                    simLogLines.push(`      Дефицит: ${deficit} (не хватило до ${maxForLevel})`);
+                    // Сначала сбрасываем correctCount в 0 при переходе на новый уровень
+                    simLogLines.push(`      Сброс correctCount → 0`);
+                    simCorrectCount = 0;
+                    simModifier = 0;
+                    simFastTrack = false;
+                    simFirst = false;
+                    // Потом вычитаем дефицит с прошлого уровня из счёта на новом уровне
+                    if (deficit > 0) {
+                        simCorrectCount = simCorrectCount - deficit;
+                        simLogLines.push(`      Вычитаем дефицит прошлого уровня: → ${simCorrectCount} (может уйти в минус — это legacy-долг)`);
+                    }
+                    nextLevelUpIdx++;
+                }
+                
+                if (!simFirst) {
+                    simFirst = true;
+                    if (hRec.correct) simFastTrack = true;
+                }
+                
+                const date = new Date(hRec.timestamp).toLocaleString('ru-RU');
+                const oldCount = simCorrectCount;
+                if (hRec.correct) {
+                    simCorrectCount++;
+                    simModifier = Math.max(0, simModifier - 20);
+                } else {
+                    simCorrectCount = Math.max(0, simCorrectCount - 1);
+                    simModifier = Math.min(60, simModifier + 20);
+                    simFastTrack = false;
+                }
+                simLogLines.push(`   ${hRec.correct ? '✅' : '❌'} ${date}: ${oldCount} → ${simCorrectCount}`);
+            }
+            
+            // Проверяем, не было ли levelUp ПОСЛЕ последней записи в истории
+            while (nextLevelUpIdx < (levelUpTimestamps||[]).length) {
+                const maxForLevel = simFastTrack ? 3 : 4;
+                const deficit = Math.max(0, maxForLevel - simCorrectCount);
+                simTotalDeficit += deficit;
+                const luDate = new Date(levelUpTimestamps[nextLevelUpIdx]).toLocaleString('ru-RU');
+                simLogLines.push(`   🔼 <strong>LEVEL UP (после истории)</strong> в ${luDate}`);
+                simLogLines.push(`      Было баллов: ${simCorrectCount}/${maxForLevel}`);
+                simLogLines.push(`      Дефицит: ${deficit} (не хватило до ${maxForLevel})`);
+                // Сначала сбрасываем correctCount в 0 при переходе на новый уровень
+                simLogLines.push(`      Сброс correctCount → 0`);
+                simCorrectCount = 0;
+                simModifier = 0;
+                simFastTrack = false;
+                simFirst = false;
+                // Потом вычитаем дефицит с прошлого уровня из счёта на новом уровне
+                if (deficit > 0) {
+                    simCorrectCount = simCorrectCount - deficit;
+                    simLogLines.push(`      Вычитаем дефицит прошлого уровня: → ${simCorrectCount} (может уйти в минус — это legacy-долг)`);
+                }
+                nextLevelUpIdx++;
+            }
+            
+            const simMaxNeeded = simFastTrack ? 3 : 4;
+            if (simCorrectCount > simMaxNeeded) {
+                simCorrectCount = simMaxNeeded;
+            }
+            simLogLines.push(`   ─────────────────────────────`);
+            simLogLines.push(`   🏁 <strong>Итоговый correctCount: ${simCorrectCount}/${simMaxNeeded}</strong>`);
+            if (simFastTrack) simLogLines.push(`   ⚡ Fast track (первый ответ был правильным)`);
+            
+            let html = `<div class="modal-content"><button class="modal-close">&times;</button>
+                <h3>📋 Задание</h3>
+                ${imgHtml}
+                <p><strong>${escapeHtml(q.question)}</strong></p>
+                <p>Тип: ${q.type==='card'?'Карточка':q.type==='open'?'Открытый ответ':'Выбор варианта'}</p>
+                ${q.explanation?`<p><em>Объяснение: ${escapeHtml(q.explanation)}</em></p>`:''}
+                
+                <details style="margin:1rem 0; padding:0.8rem; background:var(--bg); border-radius:8px; border:1px solid var(--border);" open>
+                    <summary style="cursor:pointer; font-weight:600; font-size:0.95rem;">🧮 Лог пересчёта correctCount</summary>
+                    <div style="margin-top:0.8rem; font-family:monospace; font-size:0.85rem; line-height:1.6; white-space:pre-wrap;">${simLogLines.join('\n')}</div>
+                </details>
+                
+                <h4 style="margin-top:1rem;">История ответов</h4>`;
+            if (!history || !history.length) {
+                html += '<p>Нет записей</p>';
+            } else {
+                history.slice().reverse().forEach(rec => {
+                    const date = new Date(rec.timestamp).toLocaleString('ru-RU');
+                    html += `<div class="history-block">
+                        <p><strong>📅 ${date}</strong> — ${rec.correct ? '✅ Верно' : '❌ Ошибка'}</p>`;
+                    if (q.type === 'open' && rec.userAnswer !== undefined) {
+                        const user = rec.userAnswer || '';
+                        const correct = rec.correctAnswer || '';
+                        if (rec.correct) {
+                            if (rec.punctuationWarning) {
+                                html += `<div class="history-answer">Ответ ученика: <span class="diff-correct">${escapeHtml(user)}</span></div>`;
+                                html += `<p style="color:#d4a017;">🔍 Ученик забыл знак препинания в конце предложения</p>`;
+                            } else {
+                                html += `<div class="history-answer">Ответ ученика: <span class="diff-correct">${escapeHtml(user)}</span></div>`;
+                            }
+                        } else {
+                            const maxLen = Math.max(user.length, correct.length);
+                            let userHtml = '', correctHtml = '';
+                            for (let i = 0; i < maxLen; i++) {
+                                const uChar = user[i] || '';
+                                const cChar = correct[i] || '';
+                                if (uChar.toLowerCase() === cChar.toLowerCase() && uChar !== '' && cChar !== '') {
+                                    userHtml += escapeHtml(uChar);
+                                    correctHtml += escapeHtml(cChar);
+                                } else {
+                                    userHtml += `<span class="diff-wrong">${escapeHtml(uChar || ' ')}</span>`;
+                                    correctHtml += `<span class="diff-correct">${escapeHtml(cChar || ' ')}</span>`;
+                                }
+                            }
+                            html += `<div class="history-answer">Ответ ученика: ${userHtml || '—'}</div>`;
+                            html += `<div class="history-answer">Правильный: ${correctHtml || '—'}</div>`;
+                        }
+                    } else if (q.type === 'choice' && rec.options) {
+                        const chosen = rec.chosenIdx !== undefined && rec.chosenIdx >= 0 ? rec.options[rec.chosenIdx] : '—';
+                        const correctOpt = rec.options[rec.correctIdx] || '';
+                        if (rec.correct) {
+                            html += `<div class="history-answer">Выбран: <span class="diff-correct">${escapeHtml(chosen)}</span></div>`;
+                        } else {
+                            html += `<div class="history-answer">Выбран: <span class="diff-wrong">${escapeHtml(chosen)}</span></div>`;
+                            html += `<div class="history-answer">Правильный: <span class="diff-correct">${escapeHtml(correctOpt)}</span></div>`;
+                        }
+                    } else if (q.type === 'card') {
+                        html += `<p>Карточка ${rec.correct ? 'просмотрена' : 'не просмотрена'}</p>`;
+                    }
+                    html += `</div>`;
+                });
+            }
+            html += '</div>';
+            overlay.innerHTML = html;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.modal-close').onclick = ()=>overlay.remove();
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        // ===================== НАЗНАЧЕНИЕ ТЕМ =====================
+        async function showTopicAssignmentModal(uid) {
+            const topicsSnap = await get(ref(db,`teachers/${teacherId}/topics`));
+            const topics = topicsSnap.val() ? Object.values(topicsSnap.val()) : [];
+            const studentSnap = await get(ref(db,`teachers/${teacherId}/students/${uid}`));
+            const student = studentSnap.exists() ? studentSnap.val() : {};
+            const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+            backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button><h3>📚 Назначение тем для ${escapeHtml(student.name||'ученика')}</h3><div>${topics.map(t=>`<label><input type="checkbox" data-topicid="${t.id}" ${t.assignedTo?.includes(uid)?'checked':''}> ${escapeHtml(t.title)}</label><br>`).join('')}</div><button class="btn" id="saveAssign">Сохранить</button></div>`;
+            document.body.appendChild(backdrop);
+            backdrop.querySelector('.modal-close').onclick = ()=>backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+            backdrop.querySelector('#saveAssign').onclick = async () => {
+                const cbs = backdrop.querySelectorAll('input[type=checkbox]');
+                for (const cb of cbs) {
+                    const refT = ref(db,`teachers/${teacherId}/topics/${cb.dataset.topicid}`);
+                    const snap = await get(refT);
+                    if (!snap.exists()) continue;
+                    let assigned = snap.val().assignedTo || [];
+                    if (cb.checked) { if (!assigned.includes(uid)) assigned.push(uid); }
+                    else assigned = assigned.filter(id=>id!==uid);
+                    await update(refT, { assignedTo: assigned.length>0?assigned:null });
+                }
+                backdrop.remove();
+            };
+        }
+
+        // ===================== РЕДАКТОР ТЕМ =====================
+        async function renderTopicsTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="section-title">📚 Темы</div><div style="display:flex; gap:0.5rem; margin-bottom:1rem;"><button class="btn" id="addTopicBtn">➕ Создать тему</button><button class="btn outline" id="importTopicsBtn">📥 Импортировать темы (JSON)</button></div><input type="file" id="importTopicsFile" accept=".json" style="display:none;"><div id="topicsList" style="margin-top:1.5rem;"></div>';
+            
+            document.getElementById('addTopicBtn').onclick = () => openTopicEditor(null);
+            document.getElementById('importTopicsBtn').onclick = () => {
+                document.getElementById('importTopicsFile').click();
+            };
+            document.getElementById('importTopicsFile').onchange = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const importData = JSON.parse(text);
+                    const topics = Array.isArray(importData) ? importData : [importData];
+                    let imported = 0, errors = 0;
+                    for (const topic of topics) {
+                        try {
+                            if (!topic.title) { errors++; continue; }
+                            const newTopic = {
+                                title: topic.title,
+                                theory: topic.theory || '',
+                                test: [],
+                                questionsPerTest: topic.questionsPerTest || 10,
+                                randomOrder: topic.randomOrder || false,
+                                timeLimit: topic.timeLimit || null,
+                                assignedTo: null
+                            };
+                            if (topic.test && Array.isArray(topic.test)) {
+                                for (const q of topic.test) {
+                                    const question = {
+                                        type: q.type || 'open',
+                                        question: q.question || '',
+                                        explanation: q.explanation || '',
+                                        timeLimit: q.timeLimit || null
+                                    };
+                                    if (question.type === 'open') question.correctAnswer = q.correctAnswer || '';
+                                    else if (question.type === 'choice') {
+                                        question.options = q.options || ['', '', '', ''];
+                                        question.correct = q.correct || 0;
+                                    } else if (question.type === 'card') question.answer = q.answer || '';
+                                    newTopic.test.push(question);
+                                }
+                            }
+                            const newRef = push(ref(db, `teachers/${teacherId}/topics`));
+                            newTopic.id = newRef.key;
+                            await set(newRef, newTopic);
+                            imported++;
+                        } catch (err) { errors++; }
+                    }
+                    alert(`✅ Импорт завершён!
+Добавлено: ${imported} тем
+Ошибок: ${errors}`);
+                    location.reload();
+                } catch (err) { alert('Ошибка чтения файла: ' + err.message); }
+                document.getElementById('importTopicsFile').value = '';
+            };
+            
+            const topicsRef = ref(db,`teachers/${teacherId}/topics`);
+            onValue(topicsRef, snap => {
+                const topics = snap.val() ? Object.values(snap.val()) : [];
+                const list = document.getElementById('topicsList');
+                if (!topics.length) { list.innerHTML = '<div class="empty-message">Нет тем</div>'; return; }
+                list.innerHTML = topics.map(t=>`<div style="border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem;"><h4>${escapeHtml(t.title)}</h4><p>${t.test?t.test.length:0} вопросов</p><div style="margin-top:1rem;"><button class="btn small edit-topic" data-id="${t.id}">✏️ Редактировать</button> <button class="btn small danger delete-topic" data-id="${t.id}">🗑 Удалить</button></div></div>`).join('');
+                list.querySelectorAll('.edit-topic').forEach(b=>b.onclick=()=>openTopicEditor(b.dataset.id));
+                list.querySelectorAll('.delete-topic').forEach(b=>b.onclick=async ()=>{if(confirm('Удалить тему?')) await remove(ref(db,`teachers/${teacherId}/topics/${b.dataset.id}`))});
+            });
+        }
+
+        async function openTopicEditor(topicId) {
+            let topic = { title:'', theory:'', test:[], questionsPerTest:10, randomOrder:false, assignedTo:null };
+            if (topicId) {
+                const snap = await get(ref(db,`teachers/${teacherId}/topics/${topicId}`));
+                if (snap.exists()) topic = snap.val();
+            }
+            let hasUnsavedChanges = false, autoSaveInterval, isSaving = false;
+            const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:750px;">
+                    <button class="modal-close" id="closeEditorBtn">&times;</button>
+                    <h3>${topicId?'Редактировать':'Новая'} тема</h3>
+                    <div id="errorContainer"></div>
+                    <label>Название: <input type="text" id="topicTitle" value="${escapeHtml(topic.title)}"></label>
+                    <label>Теория (HTML): <textarea id="topicTheory" rows="6">${escapeHtml(topic.theory)}</textarea></label>
+                    <label>Время на вопрос по умолчанию (сек): <input type="number" id="topicTimeLimit" value="${topic.timeLimit || ''}" placeholder="30" min="0" style="width:150px;"></label>
+                    <div style="display:flex; gap:1rem; align-items:center; margin:1rem 0;">
+                        <label>Вопросов в тесте: <input type="number" id="questionsPerTest" value="${topic.questionsPerTest||10}" min="1" style="width:100px;"></label>
+                        <label><input type="checkbox" id="randomOrder" ${topic.randomOrder?'checked':''}> Случайный порядок</label>
+                    </div>
+                    <h4>Вопросы теста</h4>
+                    <div id="testQuestions"></div>
+                    <button class="btn small" id="addQuestionBtn" style="margin-top:0.5rem;">➕ Добавить вопрос</button>
+                    <div style="margin-top:1.5rem; display:flex; gap:0.5rem; align-items:center;">
+                        <button class="btn" id="saveTopicBtn">Сохранить</button>
+                        <button class="btn outline" id="closeEditorBtn2">Закрыть</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(backdrop);
+            const saveBtn = backdrop.querySelector('#saveTopicBtn');
+            const errorContainer = backdrop.querySelector('#errorContainer');
+            function showError(msg) { errorContainer.innerHTML = `<div class="error-box">${msg}</div>`; setTimeout(()=>errorContainer.innerHTML='', 5000); }
+            function markChanged() { if (!hasUnsavedChanges) { hasUnsavedChanges = true; saveBtn.textContent = 'Сохранить'; } }
+            function markSaved() { hasUnsavedChanges = false; saveBtn.textContent = '✅ Сохранено'; setTimeout(()=>saveBtn.textContent='Сохранить', 2000); }
+            function collectTestData() {
+                const blocks = backdrop.querySelectorAll('#testQuestions .question-block');
+                topic.test = [];
+                blocks.forEach(block => {
+                    const idx = block.dataset.idx;
+                    if (idx === undefined) return; // пропускаем блоки без dataset.idx
+                    const qType = block.querySelector('.q-type')?.value || 'open';
+                    const qData = { type: qType, question: block.querySelector('.q-text')?.value || '', timeLimit: block.querySelector('.q-time')?.value || null, explanation: block.querySelector('.q-expl')?.value || '', image: block.querySelector('.q-image')?.value || '', explanationImage: block.querySelector('.q-expl-image')?.value || '' };
+                    // Сохраняем размеры изображений, если они были изменены через resize
+                    const imgContainer = block.querySelector('.q-image-preview .resizable-image-container');
+                    if (imgContainer) {
+                        qData.imageWidth = imgContainer.offsetWidth;
+                        qData.imageHeight = imgContainer.offsetHeight;
+                    }
+                    const explImgContainer = block.querySelector('.q-expl-image-preview .resizable-image-container');
+                    if (explImgContainer) {
+                        qData.explanationImageWidth = explImgContainer.offsetWidth;
+                        qData.explanationImageHeight = explImgContainer.offsetHeight;
+                    }
+                    if (qType === 'card') qData.answer = block.querySelector('.q-answer')?.value || '';
+                    if (qType === 'open') qData.correctAnswer = block.querySelector('.q-correct')?.value || '';
+                    if (qType === 'choice') {
+                        const opts = block.querySelectorAll('.opt-text');
+                        qData.options = Array.from(opts).map(o=>o.value);
+                        const correctRadio = block.querySelector(`input[name="correct_${idx}"]:checked`);
+                        qData.correct = correctRadio ? parseInt(correctRadio.value) : 0;
+                    }
+                    topic.test.push(qData);
+                });
+            }
+            async function saveTopicData() {
+                if (isSaving) return false; isSaving = true;
+                try {
+                    collectTestData();
+                    const title = backdrop.querySelector('#topicTitle')?.value?.trim() || '';
+                    if (!title) { showError('Введите название темы'); isSaving=false; return false; }
+                    const topicData = { title, theory: backdrop.querySelector('#topicTheory')?.value || '', test: topic.test, questionsPerTest: parseInt(backdrop.querySelector('#questionsPerTest')?.value) || 10, randomOrder: backdrop.querySelector('#randomOrder')?.checked || false, timeLimit: parseInt(backdrop.querySelector('#topicTimeLimit')?.value) || null };
+                    if (topicId) await update(ref(db,`teachers/${teacherId}/topics/${topicId}`), topicData);
+                    else { const newRef = push(ref(db,`teachers/${teacherId}/topics`)); topicData.id = newRef.key; topicData.assignedTo = null; await set(newRef, topicData); topicId = newRef.key; }
+                    markSaved(); isSaving = false; return true;
+                } catch (error) { console.error(error); showError('Ошибка сохранения: ' + error.message); isSaving = false; return false; }
+            }
+            function renderTest() {
+                const container = backdrop.querySelector('#testQuestions');
+                if (!container) return;
+                container.innerHTML = (topic.test||[]).map((q,idx)=>{
+                    const isCard = q.type==='card', isOpen = q.type==='open';
+                    return `<div class="question-block" data-idx="${idx}">
+                        <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.8rem;">
+                            <select class="q-type"><option value="open" ${isOpen?'selected':''}>Открытый ответ</option><option value="choice" ${q.type==='choice'?'selected':''}>Выбор варианта</option><option value="card" ${isCard?'selected':''}>Карточка</option></select>
+                            <label>Время: <input type="number" class="q-time" value="${q.timeLimit||''}" style="width:80px;"></label></div><div class="question-separator"></div>
+                        <label class="question-label">Вопрос:</label><input type="text" class="q-text" value="${escapeHtml(q.question)}" placeholder="Вопрос">
+                        ${isCard?`<label class="question-label">Ответ:</label><input type="text" class="q-answer" value="${escapeHtml(q.answer||'')}" placeholder="Ответ">`:''}
+                        ${isOpen?`<label class="question-label">Правильный ответ:</label><input type="text" class="q-correct" value="${escapeHtml(q.correctAnswer||'')}" placeholder="Правильный ответ">`:''}
+                        ${(!isCard&&!isOpen)?`<label class="question-label">Варианты ответа:</label>${(q.options||['','','','']).map((opt,oi)=>`<div class="option-row"><input type="radio" name="correct_${idx}" value="${oi}" ${q.correct===oi?'checked':''}><input type="text" class="opt-text" value="${escapeHtml(opt)}"></div>`).join('')}`:''}
+                        <label class="question-label">Объяснение:</label><input type="text" class="q-expl" value="${escapeHtml(q.explanation||'')}" placeholder="Объяснение">
+                        <label class="question-label">Изображение к заданию:</label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" class="q-image" value="${escapeHtml(q.image||'')}">
+                            <button type="button" class="btn small outline q-image-upload">📁 Загрузить файл</button>
+                            ${q.image ? `<span style="font-size:0.85rem; color:var(--text-muted);">✅ файл загружен</span>` : `<span style="font-size:0.85rem; color:var(--text-muted);">файл не выбран</span>`}
+                        </div>
+                        ${q.image ? `<div class="q-image-preview" style="margin-top:0.5rem; position:relative; display:inline-block;">
+                            <div class="resizable-image-container"${q.imageWidth ? ` style="width:${q.imageWidth}px;height:${q.imageHeight}px;"` : ''}>
+                                <img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к заданию">
+                                <div class="resize-handle"></div>
+                            </div>
+                            <button type="button" class="q-image-remove" style="position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; background:#b91c1c; color:white; border:none; cursor:pointer; font-size:14px; line-height:24px; text-align:center;">×</button>
+                        </div>` : ''}
+                        <label class="question-label">Изображение к объяснению:</label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                            <input type="hidden" class="q-expl-image" value="${escapeHtml(q.explanationImage||'')}">
+                            <button type="button" class="btn small outline q-expl-image-upload">📁 Загрузить файл</button>
+                            ${q.explanationImage ? `<span style="font-size:0.85rem; color:var(--text-muted);">✅ файл загружен</span>` : `<span style="font-size:0.85rem; color:var(--text-muted);">файл не выбран</span>`}
+                        </div>
+                        ${q.explanationImage ? `<div class="q-expl-image-preview" style="margin-top:0.5rem; position:relative; display:inline-block;">
+                            <div class="resizable-image-container"${q.explanationImageWidth ? ` style="width:${q.explanationImageWidth}px;height:${q.explanationImageHeight}px;"` : ''}>
+                                <img src="${escapeHtml(q.explanationImage)}" class="resizable-image" alt="Изображение к объяснению">
+                                <div class="resize-handle"></div>
+                            </div>
+                            <button type="button" class="q-expl-image-remove" style="position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; background:#b91c1c; color:white; border:none; cursor:pointer; font-size:14px; line-height:24px; text-align:center;">×</button>
+                        </div>` : ''}
+                        <div class="question-separator"></div><div class="question-actions"><button class="btn small danger remove-question">🗑 Удалить</button></div></div>`;
+                }).join('');
+                container.querySelectorAll('.remove-question').forEach(b=>b.onclick=()=>{ collectTestData(); topic.test.splice(parseInt(b.closest('.question-block').dataset.idx),1); renderTest(); markChanged(); });
+                container.querySelectorAll('input, select, textarea').forEach(i=>{ i.addEventListener('input',markChanged); i.addEventListener('change',markChanged); });
+                // Функция загрузки изображения через FileReader
+                function setupImageUpload(btnSelector, inputSelector) {
+                    console.log('setupImageUpload called for', btnSelector, 'found:', container.querySelectorAll(btnSelector).length);
+                    container.querySelectorAll(btnSelector).forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                                const file = e.target.files[0];
+                                if (!file) {
+                                    showError('Файл не выбран');
+                                    return;
+                                }
+                                // Проверка размера (макс 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                    showError('Файл слишком большой. Максимальный размер — 5 МБ.');
+                                    return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                    try {
+                                        console.log('reader.onload START, result length:', ev.target.result ? ev.target.result.length : 0);
+                                        const block = btn.closest('.question-block');
+                                        console.log('block found:', !!block);
+                                        const textInput = block.querySelector(inputSelector);
+                                        console.log('textInput found:', !!textInput, 'selector:', inputSelector);
+                                        if (textInput) {
+                                            textInput.value = ev.target.result;
+                                            markChanged();
+                                            // Определяем селектор превью
+                                            const previewSelector = inputSelector.replace('-image', '-image-preview');
+                                            console.log('Looking for preview with selector:', previewSelector);
+                                            const previewContainer = block.querySelector(previewSelector);
+                                            console.log('previewContainer found:', !!previewContainer);
+                                            if (previewContainer) {
+                                                previewContainer.innerHTML = `<div class="resizable-image-container">
+                                                    <img src="${ev.target.result}" class="resizable-image" alt="Изображение">
+                                                    <div class="resize-handle"></div>
+                                                </div>
+                                                <button type="button" class="${inputSelector.replace('.', '').replace('-image', '-image-remove')}" style="position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; background:#b91c1c; color:white; border:none; cursor:pointer; font-size:14px; line-height:24px; text-align:center;">×</button>`;
+                                                // Обновляем текст статуса
+                                                const statusSpan = block.querySelector(inputSelector === '.q-image' ? '.q-image-upload' : '.q-expl-image-upload');
+                                                console.log('statusSpan found:', !!statusSpan);
+                                                if (statusSpan) {
+                                                    const parent = statusSpan.parentElement;
+                                                    const oldStatus = parent.querySelector('span');
+                                                    console.log('oldStatus span found:', !!oldStatus);
+                                                    if (oldStatus) oldStatus.textContent = '✅ файл загружен';
+                                                }
+                                                console.log('Preview updated successfully');
+                                            } else {
+                                                console.log('No preview container, creating one');
+                                                // Создаём контейнер превью прямо в DOM
+                                                const previewDiv = document.createElement('div');
+                                                previewDiv.className = previewSelector.replace('.', '');
+                                                previewDiv.style.cssText = 'margin-top:0.5rem; position:relative; display:inline-block;';
+                                                previewDiv.innerHTML = `<div class="resizable-image-container">
+                                                        <img src="${ev.target.result}" class="resizable-image" alt="Изображение">
+                                                        <div class="resize-handle"></div>
+                                                    </div>
+                                                    <button type="button" class="${inputSelector.replace('.', '').replace('-image', '-image-remove')}" style="position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; background:#b91c1c; color:white; border:none; cursor:pointer; font-size:14px; line-height:24px; text-align:center;">×</button>`;
+                                                // Вставляем после контейнера с кнопкой загрузки
+                                                const uploadContainer = block.querySelector(inputSelector === '.q-image' ? '.q-image-upload' : '.q-expl-image-upload')?.closest('div');
+                                                if (uploadContainer && uploadContainer.parentNode) {
+                                                    uploadContainer.parentNode.insertBefore(previewDiv, uploadContainer.nextSibling);
+                                                } else {
+                                                    block.appendChild(previewDiv);
+                                                }
+                                                // Обновляем текст статуса
+                                                const statusSpan2 = block.querySelector(inputSelector === '.q-image' ? '.q-image-upload' : '.q-expl-image-upload');
+                                                if (statusSpan2) {
+                                                    const parent = statusSpan2.parentElement;
+                                                    const oldStatus = parent.querySelector('span');
+                                                    if (oldStatus) oldStatus.textContent = '✅ файл загружен';
+                                                }
+                                                // Навешиваем обработчик на кнопку удаления
+                                                const removeBtn = previewDiv.querySelector('.' + inputSelector.replace('.', '').replace('-image', '-image-remove'));
+                                                if (removeBtn) {
+                                                    removeBtn.addEventListener('click', () => {
+                                                        const textInput = block.querySelector(inputSelector);
+                                                        if (textInput) textInput.value = '';
+                                                        markChanged();
+                                                        previewDiv.remove();
+                                                        const statusSpan3 = block.querySelector(inputSelector === '.q-image' ? '.q-image-upload' : '.q-expl-image-upload');
+                                                        if (statusSpan3) {
+                                                            const parent = statusSpan3.parentElement;
+                                                            const oldStatus = parent.querySelector('span');
+                                                            if (oldStatus) oldStatus.textContent = 'файл не выбран';
+                                                        }
+                                                    });
+                                                }
+                                                console.log('Preview created and inserted successfully');
+                                            }
+                                        } else {
+                                            console.log('textInput NOT found!');
+                                        }
+                                        console.log('reader.onload END successfully');
+                                    } catch (err) {
+                                        console.error('ERROR in reader.onload:', err);
+                                        showError('Ошибка при загрузке изображения: ' + err.message);
+                                    }
+                                };
+                                reader.onerror = () => {
+                                    console.error('FileReader error event');
+                                    showError('Ошибка при чтении файла. Попробуйте другой файл.');
+                                };
+                                reader.readAsDataURL(file);
+                            };
+                            input.click();
+                        });
+                    });
+                }
+                // Функция удаления изображения
+                function setupImageRemove(btnSelector, inputSelector) {
+                    container.querySelectorAll(btnSelector).forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const block = btn.closest('.question-block');
+                            const textInput = block.querySelector(inputSelector);
+                            if (textInput) textInput.value = '';
+                            markChanged();
+                            // Вместо полного перерендера — очищаем превью для этого блока
+                            const previewContainer = block.querySelector(inputSelector.replace('.q-', '.q-').replace('-image', '-image-preview'));
+                            if (previewContainer) {
+                                previewContainer.innerHTML = '';
+                            }
+                            // Обновляем текст статуса
+                            const statusSpan = block.querySelector(inputSelector === '.q-image' ? '.q-image-upload' : '.q-expl-image-upload');
+                            if (statusSpan) {
+                                const parent = statusSpan.parentElement;
+                                const oldStatus = parent.querySelector('span');
+                                if (oldStatus) oldStatus.textContent = 'файл не выбран';
+                            }
+                        });
+                    });
+                }
+                // Загрузка изображения к заданию
+                setupImageUpload('.q-image-upload', '.q-image');
+                // Удаление изображения к заданию
+                setupImageRemove('.q-image-remove', '.q-image');
+                // Загрузка изображения к объяснению
+                setupImageUpload('.q-expl-image-upload', '.q-expl-image');
+                // Удаление изображения к объяснению
+                setupImageRemove('.q-expl-image-remove', '.q-expl-image');
+            }
+            backdrop.querySelector('#topicTitle').addEventListener('input', markChanged);
+            backdrop.querySelector('#topicTheory').addEventListener('input', markChanged);
+            backdrop.querySelector('#topicTimeLimit').addEventListener('input', markChanged);
+            backdrop.querySelector('#questionsPerTest').addEventListener('input', markChanged);
+            backdrop.querySelector('#randomOrder').addEventListener('change', markChanged);
+            backdrop.querySelector('#addQuestionBtn').addEventListener('click', ()=>{ collectTestData(); topic.test.push({ type:'open', question:'', correctAnswer:'', explanation:'', timeLimit:null, image:'', explanationImage:'' }); renderTest(); markChanged(); });
+            async function closeEditor() { if (hasUnsavedChanges && !confirm('Есть несохранённые изменения. Закрыть?')) return; clearInterval(autoSaveInterval); backdrop.remove(); }
+            backdrop.querySelector('#closeEditorBtn').onclick = closeEditor;
+            backdrop.querySelector('#closeEditorBtn2').onclick = closeEditor;
+            backdrop.addEventListener('click', e=>{ if(e.target===backdrop) closeEditor(); });
+            saveBtn.addEventListener('click', saveTopicData);
+            autoSaveInterval = setInterval(async ()=>{ if (hasUnsavedChanges && !isSaving) await saveTopicData(); }, 15000);
+            renderTest();
+            if (!topicId) markChanged();
+        }
+
+        // ===================== НАСТРОЙКИ =====================
+        function renderSettingsTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = `<div class="section-title">⚙️ Настройки</div><p><strong>ID учителя:</strong> ${teacherId}</p><div style="margin-top: 2rem; margin-bottom: 2rem;"><button class="btn danger" id="resetTeacherBtn">Сбросить всё</button></div>
+            <div class="settings-section"><h3 class="section-toggle">📦 Обновление программы ▾</h3><div class="section-content"><p>Загрузите HTML-файл с новой версией программы для учеников.</p><div style="display:flex; gap:1rem; align-items:center; margin-bottom:2.5rem;">
+                            <input type="file" id="updateFileInput" accept=".html" style="width:auto;"><span>Текущая версия: <strong id="currentVersion">—</strong></span></div><div style="margin-bottom:1.5rem;"><label>Отправить выбранным ученикам:</label><select id="studentSelect" multiple style="width:100%; height:100px;"></select></div><button class="btn" id="pushUpdateBtn" disabled style="margin-top:1rem;">Загрузить и отправить обновление</button>
+                        <p id="fileError" style="color:#b91c1c; margin-top:0.5rem;"></p></div></div>
+            <div class="settings-section"><h3 class="section-toggle">💾 Резервное копирование и перенос ▾</h3><div class="section-content">
+                <p style="margin-bottom:1rem;">Экспорт создаёт файл со всеми данными (ученики, темы, коды доступа, цитаты).<br>Импорт загружает данные из такого файла в текущий аккаунт учителя.</p>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+                    <button class="btn" id="exportDataBtn">📤 Экспортировать данные</button>
+                    <button class="btn outline" id="importDataBtn">📥 Импортировать данные из файла</button>
+                </div>
+                <div id="importStatus" style="margin-top:1rem; font-size:0.9rem;"></div>
+            </div></div>
+            </div></div>
+            <div class="settings-section"><h3 class="section-toggle">🧹 Очистка дубликатов ▾</h3><div class="section-content">
+                <p style="margin-bottom:1rem;">Дубликатом считается запись в истории ответов ученика, сделанная в течение <strong>8 секунд</strong> после предыдущей по тому же вопросу.</p>
+                <p style="margin-bottom:1rem; color:var(--text-secondary); font-size:0.9rem;">Очистка удаляет дубликаты и пересчитывает correctCount на основе auditLog. <strong>Уровни учеников НЕ сбрасываются</strong>, но прогресс может стать отрицательным — ученику нужно будет добить разницу. Учитывается бонус за первый правильный ответ (fast track: 3 вместо 4).</p>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem;">
+                    <button class="btn" id="backupBtn">💾 Создать резерв</button>
+                    <button class="btn" id="cleanDupesBtn">🧹 Очистить дубликаты</button>
+                    <button class="btn outline" id="restoreBackupBtn">⏪ Восстановить из резерва</button>
+                </div>
+                <div id="cleanupStatus" style="margin-top:1rem; font-size:0.9rem; white-space:pre-wrap;"></div>
+            </div></div>
+            <div class="settings-section"><h3 class="section-toggle">🎨 Настройки цитат и изображений ▾</h3><div class="section-content"><div id="quotesSettings"></div><button class="btn" id="saveQuotes" style="margin-top:1.5rem;">Сохранить настройки цитат</button></div></div>`;
+            document.getElementById('resetTeacherBtn').onclick = ()=>{if(confirm('Создать новый ID?')){localStorage.removeItem('teacher_id');location.reload();}};
+            
+            // === ЭКСПОРТ ДАННЫХ ===
+            document.getElementById('exportDataBtn').onclick = async () => {
+                try {
+                    const snapshot = await get(ref(db, `teachers/${teacherId}`));
+                    const allData = snapshot.val() || {};
+                    
+                    // Удаляем чувствительные данные (соль, хэш, ID учителя)
+                    delete allData._salt;
+                    delete allData._hash;
+                    
+                    // Создаём файл для скачивания
+                    const dataStr = JSON.stringify(allData, null, 2);
+                    const blob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `forestudy_backup_${new Date().toISOString().slice(0,19)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    alert('✅ Данные экспортированы! Файл сохранён.');
+                } catch (error) {
+                    console.error(error);
+                    alert('Ошибка экспорта: ' + error.message);
+                }
+            };
+            
+            // === ИМПОРТ ДАННЫХ ===
+            const importStatus = document.getElementById('importStatus');
+            
+            function showImportMessage(msg, isError = false) {
+                importStatus.innerHTML = `<span style="color: ${isError ? '#ef4444' : '#10b981'};">${msg}</span>`;
+                setTimeout(() => { importStatus.innerHTML = ''; }, 5000);
+            }
+            
+            // Создаём скрытый input для выбора файла
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/json';
+            fileInput.style.display = 'none';
+            document.body.appendChild(fileInput);
+            
+            document.getElementById('importDataBtn').onclick = () => {
+                fileInput.click();
+            };
+            
+            fileInput.onchange = async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const importData = JSON.parse(text);
+                    
+                    // Проверяем, что файл содержит данные учителя (хотя бы один из ожидаемых узлов)
+                    const expectedNodes = ['students', 'topics', 'accessCodes', 'quotesSettings', 'appVersion'];
+                    const hasAnyNode = expectedNodes.some(node => importData[node]);
+                    if (!hasAnyNode) {
+                        showImportMessage('❌ Неверный формат файла. Нет данных учеников, тем или кодов доступа.', true);
+                        fileInput.value = '';
+                        return;
+                    }
+                    
+                    const confirmImport = confirm(`Импортировать данные?\n\nБудут добавлены/обновлены:\n- Ученики\n- Темы\n- Коды доступа\n- Цитаты\n- Версия приложения\n\nСуществующие данные НЕ будут удалены, только дополнены. Продолжить?`);
+                    if (!confirmImport) {
+                        fileInput.value = '';
+                        return;
+                    }
+                    
+                    // Импортируем каждый узел (слияние, а не замена)
+                    const nodesToImport = ['students', 'topics', 'accessCodes', 'quotesSettings', 'appVersion'];
+                    let importedCount = 0;
+                    
+                    for (const node of nodesToImport) {
+                        if (importData[node] && Object.keys(importData[node]).length > 0) {
+                            // Получаем текущие данные узла
+                            const currentSnap = await get(ref(db, `teachers/${teacherId}/${node}`));
+                            const currentData = currentSnap.val() || {};
+                            
+                            // Объединяем (импортированные данные перезаписывают существующие при конфликте)
+                            const mergedData = { ...currentData, ...importData[node] };
+                            await set(ref(db, `teachers/${teacherId}/${node}`), mergedData);
+                            importedCount++;
+                            console.log(`✅ Импортирован узел: ${node}`);
+                        }
+                    }
+                    
+                    showImportMessage(`✅ Импорт завершён! Импортировано ${importedCount} разделов. Страница будет перезагружена.`);
+                    setTimeout(() => location.reload(), 2000);
+                } catch (error) {
+                    console.error(error);
+                    showImportMessage('❌ Ошибка при импорте: ' + error.message, true);
+                } finally {
+                    fileInput.value = '';
+                }
+            };
+            
+            
+            // ===================== РЕЗЕРВ, ОЧИСТКА ДУБЛИКАТОВ, ВОССТАНОВЛЕНИЕ =====================
+            const cleanupStatus = document.getElementById('cleanupStatus');
+            function showCleanupMessage(msg, isError = false) {
+                cleanupStatus.innerHTML = `<span style="color: ${isError ? '#ef4444' : '#10b981'};">${msg}</span>`;
+            }
+
+            // 1. Кнопка "Создать резерв"
+            document.getElementById('backupBtn').onclick = async () => {
+                if (!confirm('Создать резервную копию всех данных учителя в Firebase?')) return;
+                try {
+                    const snapshot = await get(ref(db, `teachers/${teacherId}`));
+                    const allData = snapshot.val() || {};
+                    const backupKey = 'backup_' + Date.now();
+                    await set(ref(db, `teachers/${teacherId}/_backups/${backupKey}`), allData);
+                    showCleanupMessage(`✅ Резервная копия создана! Ключ: ${backupKey}`);
+                } catch (error) {
+                    showCleanupMessage('❌ Ошибка создания резерва: ' + error.message, true);
+                }
+            };
+
+            // 2. Кнопка "Очистить дубликаты"
+            document.getElementById('cleanDupesBtn').onclick = async () => {
+                if (!confirm('Запустить очистку дубликатов?\n\nБудут удалены записи в истории ответов, сделанные в течение 8 секунд после предыдущей по тому же вопросу.\n\ncorrectCount будет пересчитан с учётом auditLog. Уровни учеников НЕ изменятся, но прогресс может стать отрицательным, если после удаления дублей не хватает баллов для текущего уровня.')) return;
+                
+                const btn = document.getElementById('cleanDupesBtn');
+                btn.disabled = true;
+                btn.textContent = '⏳ Очистка...';
+                showCleanupMessage('⏳ Идёт очистка...');
+                
+                try {
+                    const DUPES_WINDOW_MS = 8000; // 8 секунд
+                    const studentsSnap = await get(ref(db, `teachers/${teacherId}/students`));
+                    const students = studentsSnap.val() || {};
+                    // Загружаем auditLog для анализа levelUp
+                    const auditSnap = await get(ref(db, `teachers/${teacherId}/auditLog`));
+                    const auditLog = auditSnap.val() || {};
+                    
+                    let totalDupesRemoved = 0;
+                    let totalStudentsProcessed = 0;
+                    let totalQuestionsProcessed = 0;
+                    let totalLevelAdjustments = 0;
+                    let reportLines = [];
+                    
+                    // Группируем auditLog по studentId + topicId, сортируем по timestamp
+                    const auditByStudentTopic = {};
+                    for (const [key, entry] of Object.entries(auditLog)) {
+                        if (entry.type !== 'levelUp') continue;
+                        const stKey = entry.studentId + '|' + entry.topicId;
+                        if (!auditByStudentTopic[stKey]) auditByStudentTopic[stKey] = [];
+                        auditByStudentTopic[stKey].push({ ...entry, auditKey: key });
+                    }
+                    // Сортируем каждую группу по timestamp
+                    for (const key of Object.keys(auditByStudentTopic)) {
+                        auditByStudentTopic[key].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    }
+                    
+                    for (const [uid, student] of Object.entries(students)) {
+                        const tp = student.topicProgress || {};
+                        let studentDupes = 0;
+                        let studentQuestionsProcessed = 0;
+                        let studentLevelAdjustments = 0;
+                        
+                        for (const [topicId, topicProg] of Object.entries(tp)) {
+                            const questions = topicProg.questions || {};
+                            
+                            // Получаем levelUp события для этого ученика/темы из auditLog
+                            const stKey = uid + '|' + topicId;
+                            const levelUpEvents = auditByStudentTopic[stKey] || [];
+                            
+                            // Определяем levelUpAt для каждого уровня
+                            // levelUpEvents[0] = переход на уровень 2, levelUpEvents[1] = на уровень 3, и т.д.
+                            const currentLevel = topicProg.level || 1;
+                            
+                            // Собираем все levelUpAt, которые были до текущего уровня
+                            // Если текущий уровень N, то было N-1 повышений
+                            const levelUpAtList = [];
+                            for (let i = 0; i < levelUpEvents.length && i < currentLevel - 1; i++) {
+                                levelUpAtList.push(levelUpEvents[i].timestamp);
+                            }
+                            
+                            for (const [qKey, qData] of Object.entries(questions)) {
+                                const history = qData.history || [];
+                                if (history.length < 2) continue;
+                                
+                                studentQuestionsProcessed++;
+                                
+                                // Сортируем историю по времени (по возрастанию)
+                                const sorted = [...history].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                                
+                                // Отмечаем дубликаты: записи, которые находятся в пределах 8 секунд от предыдущей
+                                const toRemove = new Set();
+                                for (let i = 1; i < sorted.length; i++) {
+                                    const prev = sorted[i - 1];
+                                    const curr = sorted[i];
+                                    const diff = (curr.timestamp || 0) - (prev.timestamp || 0);
+                                    if (diff >= 0 && diff <= DUPES_WINDOW_MS) {
+                                        toRemove.add(curr);
+                                    }
+                                }
+                                
+                                if (toRemove.size > 0) {
+                                    // Фильтруем: оставляем только те записи, которых нет в toRemove
+                                    const filtered = sorted.filter(rec => {
+                                        for (const dup of toRemove) {
+                                            if (dup.timestamp === rec.timestamp && dup.userAnswer === rec.userAnswer && dup.correct === rec.correct) {
+                                                return false;
+                                            }
+                                        }
+                                        return true;
+                                    });
+                                    
+                                    // ПЕРЕСЧИТЫВАЕМ correctCount КАК УЧЕНИК (с учётом levelUp из auditLog)
+                                    // Проходим историю от лица ученика: +1 за правильный, -1 за ошибку
+                                    // При levelUp сбрасываем correctCount в 0
+                                    // После levelUp вычитаем дефицит (сколько не хватило до levelUp)
+                                    
+                                    let recalcCorrectCount = 0;
+                                    let recalcModifier = 0;
+                                    let recalcFastTrack = false;
+                                    let recalcFirst = false;
+                                    let totalDeficit = 0; // сколько баллов не хватило до levelUp
+                                    
+                                    // Собираем все levelUp timestamps для этого ученика+темы
+                                    const levelUpTimestamps = levelUpAtList.slice(); // уже отсортированы
+                                    let nextLevelUpIdx = 0; // индекс следующего levelUp
+                                    
+                                    for (const hRec of filtered) {
+                                        // Проверяем, не наступил ли levelUp перед этой записью
+                                        while (nextLevelUpIdx < levelUpTimestamps.length && 
+                                               (hRec.timestamp || 0) >= levelUpTimestamps[nextLevelUpIdx]) {
+                                            // LevelUp! Считаем дефицит: сколько не хватило до maxNeeded
+                                            const maxForLevel = recalcFastTrack ? 3 : 4;
+                                            const deficit = Math.max(0, maxForLevel - recalcCorrectCount);
+                                            totalDeficit += deficit;
+                                            
+                                            // Сначала сбрасываем correctCount в 0 при переходе на новый уровень
+                                            recalcCorrectCount = 0;
+                                            recalcModifier = 0;
+                                            recalcFastTrack = false;
+                                            recalcFirst = false;
+                                            // Потом вычитаем дефицит с прошлого уровня из счёта на новом уровне
+                                            recalcCorrectCount = recalcCorrectCount - deficit;
+                                            nextLevelUpIdx++;
+                                        }
+                                        
+                                        if (!recalcFirst) {
+                                            recalcFirst = true;
+                                            if (hRec.correct) recalcFastTrack = true;
+                                        }
+                                        
+                                        if (hRec.correct) {
+                                            recalcCorrectCount++;
+                                            recalcModifier = Math.max(0, recalcModifier - 20);
+                                        } else {
+                                            recalcCorrectCount = Math.max(0, recalcCorrectCount - 1);
+                                            recalcModifier = Math.min(60, recalcModifier + 20);
+                                            recalcFastTrack = false;
+                                        }
+                                    }
+                                    
+                                    // Проверяем, не было ли levelUp ПОСЛЕ последней записи в истории
+                                    while (nextLevelUpIdx < levelUpTimestamps.length) {
+                                        const maxForLevel = recalcFastTrack ? 3 : 4;
+                                        const deficit = Math.max(0, maxForLevel - recalcCorrectCount);
+                                        totalDeficit += deficit;
+                                        // Сначала сбрасываем correctCount в 0 при переходе на новый уровень
+                                        recalcCorrectCount = 0;
+                                        recalcModifier = 0;
+                                        recalcFastTrack = false;
+                                        recalcFirst = false;
+                                        // Потом вычитаем дефицит с прошлого уровня из счёта на новом уровне
+                                        recalcCorrectCount = recalcCorrectCount - deficit;
+                                        nextLevelUpIdx++;
+                                    }
+                                    
+                                    // Ограничиваем сверху maxNeeded (но не снизу — может быть отрицательным)
+                                    const recalcMaxNeeded = recalcFastTrack ? 3 : 4;
+                                    if (recalcCorrectCount > recalcMaxNeeded) {
+                                        recalcCorrectCount = recalcMaxNeeded;
+                                    }
+                                    
+                                    // Проверяем, изменился ли correctCount относительно старого
+                                    const oldCorrectCount = qData.correctCount || 0;
+                                    const diff = recalcCorrectCount - oldCorrectCount;
+                                    
+                                    // Сохраняем обратно
+                                    qData.history = filtered;
+                                    qData.correctCount = recalcCorrectCount;
+                                    qData.modifier = recalcModifier;
+                                    qData.firstCorrect = recalcFastTrack;
+                                    
+                                    if (diff < 0) {
+                                        studentLevelAdjustments++;
+                                        // Добавляем информацию о конкретном вопросе
+                                        const qText = qKey.replace(/^q_/, '').substring(0, 60);
+                                        reportLines.push(`  📌 Вопрос: "${escapeHtml(qText)}" — было ${oldCorrectCount}, стало ${recalcCorrectCount} (удалено ${toRemove.size} дублей)`);
+                                    }
+                                    
+                                    studentDupes += toRemove.size;
+                                }
+                            }
+                        }
+                        
+                        if (studentDupes > 0 || studentLevelAdjustments > 0) {
+                            totalDupesRemoved += studentDupes;
+                            totalStudentsProcessed++;
+                            totalQuestionsProcessed += studentQuestionsProcessed;
+                            totalLevelAdjustments += studentLevelAdjustments;
+                            let line = `👤 ${escapeHtml(student.name || uid)}: удалено ${studentDupes} дубликатов`;
+                            if (studentLevelAdjustments > 0) {
+                                line += `, скорректировано ${studentLevelAdjustments} вопросов (прогресс уменьшен)`;
+                            }
+                            reportLines.push(line);
+                        }
+                    }
+                    
+                    // Сохраняем обновлённые данные обратно в Firebase
+                    if (totalDupesRemoved > 0 || totalLevelAdjustments > 0) {
+                        await set(ref(db, `teachers/${teacherId}/students`), students);
+                        let msg = `✅ Очистка завершена!\n` +
+                            `Удалено дубликатов: ${totalDupesRemoved}\n` +
+                            `Затронуто учеников: ${totalStudentsProcessed}\n` +
+                            `Затронуто вопросов: ${totalQuestionsProcessed}\n`;
+                        if (totalLevelAdjustments > 0) {
+                            msg += `Скорректировано вопросов (прогресс ↓): ${totalLevelAdjustments}\n`;
+                            msg += `⚠️ Уровни учеников сохранены. Ученикам нужно добить разницу.\n`;
+                        }
+                        msg += `\n📋 Детали:\n${reportLines.join('\n')}`;
+                        showCleanupMessage(msg);
+                    } else {
+                        showCleanupMessage('✅ Дубликатов не найдено. Все записи уникальны.');
+                    }
+                } catch (error) {
+                    showCleanupMessage('❌ Ошибка при очистке: ' + error.message, true);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '🧹 Очистить дубликаты';
+                }
+            };
+
+            // 3. Кнопка "Восстановить из резерва"
+            document.getElementById('restoreBackupBtn').onclick = async () => {
+                try {
+                    // Получаем список резервных копий
+                    const backupsSnap = await get(ref(db, `teachers/${teacherId}/_backups`));
+                    const backups = backupsSnap.val() || {};
+                    const backupKeys = Object.keys(backups).sort().reverse();
+                    
+                    if (backupKeys.length === 0) {
+                        showCleanupMessage('❌ Нет сохранённых резервных копий.', true);
+                        return;
+                    }
+                    
+                    // Показываем диалог выбора резерва
+                    const backdrop = document.createElement('div'); backdrop.className = 'modal-backdrop';
+                    backdrop.innerHTML = `
+                        <div class="modal-content" style="max-width:500px;">
+                            <button class="modal-close">&times;</button>
+                            <h3>⏪ Восстановление из резерва</h3>
+                            <p style="margin:1rem 0;">Выберите резервную копию для восстановления:</p>
+                            <select id="backupSelect" style="width:100%; padding:0.5rem; margin-bottom:1rem;">
+                                ${backupKeys.map(key => {
+                                    const date = new Date(parseInt(key.replace('backup_', ''))).toLocaleString('ru-RU');
+                                    return `<option value="${key}">${date} (${key})</option>`;
+                                }).join('')}
+                            </select>
+                            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">
+                                ⚠️ Все текущие данные будут <strong>полностью заменены</strong> данными из резервной копии.
+                            </p>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn danger" id="confirmRestoreBtn">⏪ Восстановить</button>
+                                <button class="btn outline" id="cancelRestoreBtn">Отмена</button>
+                            </div>
+                            <div id="restoreStatus" style="margin-top:1rem;"></div>
+                        </div>
+                    `;
+                    document.body.appendChild(backdrop);
+                    
+                    backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+                    backdrop.querySelector('#cancelRestoreBtn').onclick = () => backdrop.remove();
+                    backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+                    
+                    backdrop.querySelector('#confirmRestoreBtn').onclick = async () => {
+                        const selectedKey = backdrop.querySelector('#backupSelect').value;
+                        if (!selectedKey) return;
+                        
+                        if (!confirm(`ВНИМАНИЕ! Все текущие данные будут заменены данными из резервной копии ${selectedKey}.\n\nЭто действие нельзя отменить через интерфейс. Продолжить?`)) return;
+                        
+                        try {
+                            const restoreBtn = backdrop.querySelector('#confirmRestoreBtn');
+                            restoreBtn.disabled = true;
+                            restoreBtn.textContent = '⏳ Восстановление...';
+                            
+                            const backupData = backups[selectedKey];
+                            
+                            // Восстанавливаем все узлы, кроме _salt, _hash и _backups
+                            const nodesToRestore = ['students', 'topics', 'accessCodes', 'quotesSettings', 'appVersion'];
+                            for (const node of nodesToRestore) {
+                                if (backupData[node] !== undefined) {
+                                    await set(ref(db, `teachers/${teacherId}/${node}`), backupData[node]);
+                                }
+                            }
+                            
+                            backdrop.querySelector('#restoreStatus').innerHTML = '<span style="color:#10b981;">✅ Восстановление завершено! Страница будет перезагружена.</span>';
+                            setTimeout(() => { backdrop.remove(); location.reload(); }, 2000);
+                        } catch (error) {
+                            backdrop.querySelector('#restoreStatus').innerHTML = `<span style="color:#ef4444;">❌ Ошибка: ${error.message}</span>`;
+                            const restoreBtn = backdrop.querySelector('#confirmRestoreBtn');
+                            restoreBtn.disabled = false;
+                            restoreBtn.textContent = '⏪ Восстановить';
+                        }
+                    };
+                } catch (error) {
+                    showCleanupMessage('❌ Ошибка при загрузке списка резервов: ' + error.message, true);
+                }
+            };
+
+            // === КНОПКА ПЕРЕНОСА ДАННЫХ ИЗ СТАРОГО УЧИТЕЛЯ ===
+            const transferBtn = document.createElement('button');
+            transferBtn.textContent = '📦 Перенести данные из другого учителя';
+            transferBtn.className = 'btn outline';
+            transferBtn.style.marginTop = '1rem';
+            transferBtn.style.marginLeft = '0.5rem';
+            transferBtn.onclick = async () => {
+                const oldId = prompt('Введите ID старого учителя (который был в локальных файлах):');
+                if (!oldId) return;
+                
+                const transferConfirm = confirm(`ВНИМАНИЕ! Данные из учителя ${oldId} будут скопированы в текущий аккаунт (${teacherId}). Старый учитель НЕ будет удалён. Продолжить?`);
+                if (!transferConfirm) return;
+                
+                try {
+                    // Читаем данные старого учителя
+                    const oldDataSnap = await get(ref(db, `teachers/${oldId}`));
+                    if (!oldDataSnap.exists()) {
+                        alert('Учитель с таким ID не найден');
+                        return;
+                    }
+                    
+                    const oldData = oldDataSnap.val();
+                    const currentDataSnap = await get(ref(db, `teachers/${teacherId}`));
+                    const currentData = currentDataSnap.val() || {};
+                    
+                    // Копируем только нужные узлы (students, topics, accessCodes, quotesSettings, appVersion)
+                    const nodesToCopy = ['students', 'topics', 'accessCodes', 'quotesSettings', 'appVersion'];
+                    
+                    for (const node of nodesToCopy) {
+                        if (oldData[node]) {
+                            await set(ref(db, `teachers/${teacherId}/${node}`), oldData[node]);
+                            console.log(`✅ Скопирован узел: ${node}`);
+                        }
+                    }
+                    
+                    alert('Данные успешно скопированы! Страница будет перезагружена.');
+                    location.reload();
+                } catch (error) {
+                    console.error(error);
+                    alert('Ошибка при копировании: ' + error.message);
+                }
+            };
+            
+            // Добавляем кнопку рядом с кнопкой сброса
+            const resetBtn = document.getElementById('resetTeacherBtn');
+            if (resetBtn && resetBtn.parentNode) {
+                resetBtn.parentNode.appendChild(transferBtn);
+            }
+            
+            document.querySelectorAll('.section-toggle').forEach(toggle => { toggle.addEventListener('click', function() { const content = this.nextElementSibling; if (content) { const isHidden = content.style.display === 'none'; content.style.display = isHidden ? 'block' : 'none'; this.textContent = this.textContent.replace(isHidden ? '▾' : '▸', isHidden ? '▸' : '▾'); } }); });
+            get(ref(db,`teachers/${teacherId}/appVersion`)).then(snap => { document.getElementById('currentVersion').textContent = snap.val()?.version || '1.0'; });
+            document.getElementById('pushUpdateBtn').onclick = async () => { const currentVer = (await get(ref(db,`teachers/${teacherId}/appVersion`))).val()?.version || '1.0'; const parts = currentVer.split('.').map(Number); parts[parts.length-1]++; const newVer = parts.join('.'); await set(ref(db,`teachers/${teacherId}/appVersion`), { version: newVer, updatedAt: Date.now() }); document.getElementById('currentVersion').textContent = newVer; alert(`Обновление ${newVer} отправлено!`); };
+            get(ref(db,`teachers/${teacherId}/quotesSettings`)).then(snap => { const settings = snap.val() || {}; const ranges = [{ key:'low', label:'0-49%', q:'«Не ошибается лишь тот, кто ничего не делает»', a:'Теодор Рузвельт' },{ key:'mid', label:'50-69%', q:'«Самое прекрасное в обучении то, что никто не может его у вас отнять»', a:'Би Би Кинг' },{ key:'high', label:'70-99%', q:'«Это всегда кажется невозможным, пока это не сделано»', a:'Нельсон Мандела' },{ key:'perfect', label:'100%', q:'«Будущее принадлежит тем, кто верит в красоту своей мечты»', a:'Элеонора Рузвельт' }]; let h=''; ranges.forEach(r => { const s = settings[r.key]||{}; h+=`<fieldset style="border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;"><legend style="padding: 0 1rem;">${r.label}</legend><label>Цитата: <input class="quote-${r.key}" value="${escapeHtml(s.quote||r.q)}"></label><label>Автор: <input class="author-${r.key}" value="${escapeHtml(s.author||r.a)}"></label><label>URL изображения: <input class="img-${r.key}" value="${escapeHtml(s.img||'')}" placeholder="https://..."></label><div class="img-preview-circle" id="preview-${r.key}" style="background-image:url('${s.img||''}'); background-size:${s.bgSize||'cover'}; background-position:${s.bgPosX||'50'}% ${s.bgPosY||'50'}%;"></div><div class="img-controls"><label>Масштаб: <input type="range" class="bgSize-${r.key}" min="50" max="200" value="${parseInt(s.bgSize)||100}" step="1"> <span class="bgSize-val-${r.key}">${parseInt(s.bgSize)||100}%</span></label><label>X: <input type="range" class="bgX-${r.key}" min="0" max="100" value="${s.bgPosX||'50'}"></label><label>Y: <input type="range" class="bgY-${r.key}" min="0" max="100" value="${s.bgPosY||'50'}"></label></div></fieldset>`; }); document.getElementById('quotesSettings').innerHTML=h; document.getElementById('saveQuotes').onclick = async () => { const ns={}; ranges.forEach(r => { ns[r.key] = { quote: document.querySelector(`.quote-${r.key}`).value, author: document.querySelector(`.author-${r.key}`).value, img: document.querySelector(`.img-${r.key}`).value, bgSize: document.querySelector(`.bgSize-${r.key}`).value, bgPosX: document.querySelector(`.bgX-${r.key}`).value, bgPosY: document.querySelector(`.bgY-${r.key}`).value }; }); await set(ref(db,`teachers/${teacherId}/quotesSettings`), ns); alert('Сохранено!'); }; }); }
+        // ===================== ЖУРНАЛ СОБЫТИЙ (auditLog) =====================
+        async function renderAuditLogTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="section-title">📋 Журнал событий</div>
+                <div style="display:flex; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap;">
+                    <button class="btn" id="addLevelUpBtn">➕ Добавить запись</button>
+                    <button class="btn outline" id="refreshAuditBtn">🔄 Обновить</button>
+                </div>
+                <div id="auditLogList"></div>
+            `;
+
+            document.getElementById('addLevelUpBtn').onclick = () => showAddLevelUpDialog();
+            document.getElementById('refreshAuditBtn').onclick = () => renderAuditLogTab();
+
+            const auditRef = ref(db, `teachers/${teacherId}/auditLog`);
+            onValue(auditRef, snap => {
+                const entries = snap.val() || {};
+                const listDiv = document.getElementById('auditLogList');
+                if (!listDiv) return;
+
+                const sorted = Object.entries(entries)
+                    .map(([key, entry]) => ({ key, ...entry }))
+                    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                if (!sorted.length) {
+                    listDiv.innerHTML = '<div class="empty-message">Журнал событий пуст.</div>';
+                    return;
+                }
+
+                listDiv.innerHTML = sorted.map(entry => {
+                    const date = new Date(entry.timestamp).toLocaleString('ru-RU');
+                    const isLevelUp = entry.type === 'levelUp';
+                    const isLevelDown = entry.type === 'levelDown';
+                    const isManual = entry.manual === true;
+                    const isApplied = entry.applied === true;
+                    let badgeClass = isLevelUp ? 'levelUp' : (isManual ? 'manual' : '');
+                    if (isLevelDown) badgeClass = 'levelDown';
+                    if (isApplied) badgeClass += ' applied';
+                    let badgeText = isLevelUp ? 'Повышение уровня' : (isManual ? 'Ручная запись' : 'Событие');
+                    if (isLevelDown) badgeText = 'Понижение уровня';
+                    const studentName = entry.studentName || entry.studentId || '—';
+                    const topicName = entry.topicName || entry.topicId || '—';
+                    const level = entry.newLevel || entry.level || '?';
+                    const desc = entry.description || (isLevelDown
+                        ? `Ученик "${studentName}" понижен до уровня ${level} по теме "${topicName}"`
+                        : `Ученик "${studentName}" получил уровень ${level} по теме "${topicName}"`);
+
+                    // Строка с отметкой о применении (для applied-записей)
+                    let appliedMarkHtml = '';
+                    if (isApplied) {
+                        appliedMarkHtml = `<div class="audit-applied-mark">✅ Изменение отмечено в базе</div>`;
+                    }
+
+                    // Кнопка "Применить" (для неприменённых записей levelUp/levelDown)
+                    let applyBtnHtml = '';
+                    if ((isLevelUp || isLevelDown) && !isApplied) {
+                        applyBtnHtml = `<button class="btn outline" style="font-size:0.75rem; padding:0.2rem 0.6rem; margin-top:0.3rem;" data-apply-key="${entry.key}" data-apply-student="${entry.studentId}" data-apply-topic="${entry.topicId}" data-apply-level="${level}">🔄 Применить</button>`;
+                    }
+
+                    return `<div class="audit-entry ${badgeClass}">
+                        <div class="audit-time">${date}</div>
+                        <div class="audit-desc">${escapeHtml(desc)}</div>
+                        <div><span class="audit-badge ${badgeClass}">${badgeText}</span></div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">
+                            Ученик: ${escapeHtml(studentName)} · Тема: ${escapeHtml(topicName)} · Уровень: ${level}
+                        </div>
+                        ${appliedMarkHtml}
+                        ${applyBtnHtml}
+                    </div>`;
+                }).join('');
+
+                // Навешиваем обработчики на кнопки "Применить"
+                listDiv.querySelectorAll('[data-apply-key]').forEach(btn => {
+                    btn.onclick = async () => {
+                        const entryKey = btn.dataset.applyKey;
+                        const studentId = btn.dataset.applyStudent;
+                        const topicId = btn.dataset.applyTopic;
+                        const level = parseInt(btn.dataset.applyLevel);
+                        if (!entryKey || !studentId || !topicId || !level) return;
+
+                        btn.disabled = true;
+                        btn.textContent = '⏳ Применяю...';
+
+                        try {
+                            // Обновляем уровень ученика в topicProgress
+                            const studentRef = ref(db, `teachers/${teacherId}/students/${studentId}/topicProgress/${topicId}`);
+                            await update(studentRef, { level: level });
+
+                            // Помечаем запись как applied
+                            const entryRef = ref(db, `teachers/${teacherId}/auditLog/${entryKey}`);
+                            await update(entryRef, { applied: true });
+
+                            btn.textContent = '✅ Применено';
+                            btn.style.color = '#10b981';
+                            btn.style.borderColor = '#10b981';
+                            setTimeout(() => renderAuditLogTab(), 1000);
+                        } catch (error) {
+                            btn.textContent = '❌ Ошибка';
+                            btn.disabled = false;
+                            setTimeout(() => { btn.textContent = '🔄 Применить'; btn.disabled = false; }, 2000);
+                        }
+                    };
+                });
+            });
+        }
+
+        // Диалог ручного добавления записи (повышение или понижение уровня)
+        async function showAddLevelUpDialog() {
+            const studentsSnap = await get(ref(db, `teachers/${teacherId}/students`));
+            const students = studentsSnap.val() || {};
+            const topicsSnap = await get(ref(db, `teachers/${teacherId}/topics`));
+            const topics = topicsSnap.val() || {};
+
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:500px;">
+                    <button class="modal-close">&times;</button>
+                    <h3 id="luDialogTitle">➕ Ручное добавление записи о повышении уровня</h3>
+                    <p id="luDialogDesc" style="margin:0.5rem 0; color:var(--text-secondary); font-size:0.9rem;">
+                        Используется для старых учеников, у которых уже есть уровень, но нет записи в auditLog.
+                        После добавления система сможет корректно пересчитывать статистику.
+                    </p>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600;">Тип операции:</label>
+                        <label style="margin-right:1rem; cursor:pointer;">
+                            <input type="radio" name="luType" value="levelUp" checked> ⬆️ Повышение
+                        </label>
+                        <label style="cursor:pointer;">
+                            <input type="radio" name="luType" value="levelDown"> ⬇️ Понижение
+                        </label>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Ученик:</label>
+                        <select id="luStudent" style="width:100%;">
+                            ${Object.entries(students).map(([uid, s]) => 
+                                `<option value="${uid}">${escapeHtml(s.name || uid)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Тема:</label>
+                        <select id="luTopic" style="width:100%;">
+                            ${Object.entries(topics).map(([tid, t]) => 
+                                `<option value="${tid}">${escapeHtml(t.title || tid)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Новый уровень:</label>
+                        <input type="number" id="luLevel" value="1" min="1" max="100" style="width:100px;">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Дата:</label>
+                        <input type="datetime-local" id="luDate" style="width:100%;">
+                    </div>
+                    <div style="margin:1rem 0; padding:0.5rem; background:var(--bg); border-radius:8px; border:1px solid var(--border);">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+                            <input type="checkbox" id="luApplyToDb"> 🔄 Применить изменения в базе (обновить уровень ученика)
+                        </label>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
+                        <button class="btn" id="saveLuBtn">💾 Сохранить запись</button>
+                        <button class="btn outline" id="cancelLuBtn">Отмена</button>
+                    </div>
+                    <div id="luStatus" style="margin-top:1rem;"></div>
+
+                </div>
+            `;
+            document.body.appendChild(backdrop);
+
+            // Устанавливаем текущую дату по умолчанию
+            const now = new Date();
+            const localStr = now.getFullYear() + '-' + 
+                String(now.getMonth()+1).padStart(2,'0') + '-' + 
+                String(now.getDate()).padStart(2,'0') + 'T' + 
+                String(now.getHours()).padStart(2,'0') + ':' + 
+                String(now.getMinutes()).padStart(2,'0');
+            backdrop.querySelector('#luDate').value = localStr;
+
+            const statusDiv = backdrop.querySelector('#luStatus');
+            const titleEl = backdrop.querySelector('#luDialogTitle');
+            const descEl = backdrop.querySelector('#luDialogDesc');
+            const typeRadios = backdrop.querySelectorAll('input[name="luType"]');
+
+            // Функция обновления заголовка и описания в зависимости от выбранного типа
+            function updateDialogType() {
+                const isLevelUp = backdrop.querySelector('input[name="luType"]:checked').value === 'levelUp';
+                if (isLevelUp) {
+                    titleEl.textContent = '➕ Ручное добавление записи о повышении уровня';
+                    descEl.textContent = 'Используется для старых учеников, у которых уже есть уровень, но нет записи в auditLog. После добавления система сможет корректно пересчитывать статистику.';
+                } else {
+                    titleEl.textContent = '➖ Ручное добавление записи о понижении уровня';
+                    descEl.textContent = 'Используется для корректировки уровня ученика вручную. После добавления система сможет корректно пересчитывать статистику.';
+                }
+            }
+
+            typeRadios.forEach(radio => {
+                radio.addEventListener('change', updateDialogType);
+            });
+
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#cancelLuBtn').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+
+            backdrop.querySelector('#saveLuBtn').onclick = async () => {
+                const studentId = backdrop.querySelector('#luStudent').value;
+                const topicId = backdrop.querySelector('#luTopic').value;
+                const level = parseInt(backdrop.querySelector('#luLevel').value) || 1;
+                const dateStr = backdrop.querySelector('#luDate').value;
+                const isLevelUp = backdrop.querySelector('input[name="luType"]:checked').value === 'levelUp';
+
+                if (!studentId || !topicId) {
+                    statusDiv.innerHTML = '<span style="color:#ef4444;">Выберите ученика и тему</span>';
+                    return;
+                }
+                if (!dateStr) {
+                    statusDiv.innerHTML = '<span style="color:#ef4444;">Укажите дату</span>';
+                    return;
+                }
+
+                const timestamp = new Date(dateStr).getTime();
+                if (isNaN(timestamp)) {
+                    statusDiv.innerHTML = '<span style="color:#ef4444;">Некорректная дата</span>';
+                    return;
+                }
+
+                try {
+                    const studentName = students[studentId]?.name || studentId;
+                    const topicName = topics[topicId]?.title || topicId;
+                    const applyToDb = backdrop.querySelector('#luApplyToDb').checked;
+
+                    // Создаём запись в auditLog
+                    const auditRef = push(ref(db, `teachers/${teacherId}/auditLog`));
+                    const auditData = {
+                        type: isLevelUp ? 'levelUp' : 'levelDown',
+                        studentId: studentId,
+                        studentName: studentName,
+                        topicId: topicId,
+                        topicName: topicName,
+                        newLevel: level,
+                        timestamp: timestamp,
+                        manual: true,
+                        description: isLevelUp
+                            ? `Ручная запись: ученик "${studentName}" получил уровень ${level} по теме "${topicName}"`
+                            : `Ручная запись: ученик "${studentName}" понижен до уровня ${level} по теме "${topicName}"`,
+                        createdAt: Date.now()
+                    };
+
+                    // Если чекбокс отмечен — сразу применяем изменения в базе
+                    if (applyToDb) {
+                        // Обновляем уровень ученика в topicProgress
+                        const studentRef = ref(db, `teachers/${teacherId}/students/${studentId}/topicProgress/${topicId}`);
+                        await update(studentRef, { level: level });
+                        auditData.applied = true;
+                        statusDiv.innerHTML = '<span style="color:#10b981;">✅ Запись добавлена и уровень ученика обновлён! Журнал обновится автоматически.</span>';
+                    } else {
+                        statusDiv.innerHTML = '<span style="color:#10b981;">✅ Запись добавлена! Журнал обновится автоматически.</span>';
+                    }
+
+                    await set(auditRef, auditData);
+                    setTimeout(() => backdrop.remove(), 1500);
+                } catch (error) {
+                    statusDiv.innerHTML = `<span style="color:#ef4444;">❌ Ошибка: ${error.message}</span>`;
+                }
+
+            };
+        }
+
+        // ===================== СТАТИСТИКА ПО ДАТАМ (dateStats) =====================
+        async function renderDateStatsTab() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="section-title">📅 Статистика по датам</div>
+                <div id="dateStatsContainer"></div>
+            `;
+
+            const container = document.getElementById('dateStatsContainer');
+            const studentsSnap = await get(ref(db, `teachers/${teacherId}/students`));
+            const students = studentsSnap.val() || {};
+            const studentIds = Object.keys(students);
+
+            if (!studentIds.length) {
+                container.innerHTML = '<div class="empty-message">Нет учеников.</div>';
+                return;
+            }
+
+            // Загружаем topicProgress для всех учеников
+            const allProgress = {};
+            for (const uid of studentIds) {
+                try {
+                    const snap = await get(ref(db, `teachers/${teacherId}/students/${uid}/topicProgress`));
+                    allProgress[uid] = snap.val() || {};
+                } catch (e) {
+                    allProgress[uid] = {};
+                }
+            }
+
+            // Загружаем сохранённые нормы
+            const normsSnap = await get(ref(db, `teachers/${teacherId}/dateStatsNorms`));
+            const savedNorms = normsSnap.val() || {};
+
+            // Загружаем список тем для отображения названий
+            const topicsSnap = await get(ref(db, `teachers/${teacherId}/topics`));
+            const topicsData = topicsSnap.val() || {};
+            const topicsLookup = {};
+            for (const [tid, t] of Object.entries(topicsData)) {
+                topicsLookup[tid] = t.title || tid;
+            }
+            // Кроме того, проходим по всем ученикам — собираем названия тем из их topicProgress
+            for (const uid of studentIds) {
+                const prog = allProgress[uid] || {};
+                for (const tid of Object.keys(prog)) {
+                    if (!topicsLookup[tid]) {
+                        const ttitle = prog[tid]?.title;
+                        if (ttitle) topicsLookup[tid] = ttitle;
+                    }
+                }
+            }
+
+            // Текущий месяц для календаря (глобальный для всех)
+            let currentDate = new Date();
+            currentDate.setDate(1);
+
+            // Функция построения календаря для одного ученика
+            function buildCalendar(uid, studentName, progress, norm, monthDate) {
+                const year = monthDate.getFullYear();
+                const month = monthDate.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=вс, 1=пн...
+                // Смещаем на понедельник как первый день
+                const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+                // Собираем статистику по дням из topicProgress
+                const dayStats = {};
+                for (const topicId of Object.keys(progress)) {
+                    const topic = progress[topicId];
+                    if (!topic.questions) continue;
+                    for (const qKey of Object.keys(topic.questions)) {
+                        const q = topic.questions[qKey];
+                        if (!q.history) continue;
+                        for (const h of q.history) {
+                            if (!h.timestamp) continue;
+                            const d = new Date(h.timestamp);
+                            if (d.getFullYear() === year && d.getMonth() === month) {
+                                const dayKey = d.getDate();
+                                if (!dayStats[dayKey]) dayStats[dayKey] = { total: 0, correct: 0, wrong: 0 };
+                                dayStats[dayKey].total++;
+                                if (h.correct) dayStats[dayKey].correct++;
+                                else dayStats[dayKey].wrong++;
+                            }
+                        }
+                    }
+                }
+
+                const today = new Date();
+                const todayStr = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate();
+
+                let html = '<div class="calendar-grid">';
+                const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                dayNames.forEach(d => { html += `<div class="day-header">${d}</div>`; });
+
+                // Пустые ячейки до первого дня
+                for (let i = 0; i < startOffset; i++) {
+                    html += '<div class="day-cell no-data"></div>';
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const stats = dayStats[day];
+                    const dayStr = year + '-' + month + '-' + day;
+                    const isToday = dayStr === todayStr;
+
+                    if (stats) {
+                        const pct = (stats.correct / stats.total) * 100;
+                        const normVal = norm || 100;
+                        const pctOfNorm = (stats.total / normVal) * 100;
+                        let level;
+                        if (pctOfNorm === 0) level = 0;
+                        else if (pctOfNorm <= 33) level = Math.floor((pctOfNorm / 33) * 2);
+                        else if (pctOfNorm <= 66) level = 2 + Math.floor(((pctOfNorm - 33) / 33) * 2);
+                        else if (pctOfNorm <= 100) level = 4 + Math.floor(((pctOfNorm - 66) / 34) * 2);
+                        else level = 6 + Math.min(2, Math.floor((pctOfNorm - 100) / 50));
+                        level = Math.min(8, Math.max(0, level));
+
+                        const tooltipText = `${studentName}, ${day}.${month+1}.${year}\nЗаданий: ${stats.total}\n✅ Правильно: ${stats.correct}\n❌ Неправильно: ${stats.wrong}\nВыполнение нормы: ${Math.round(pctOfNorm)}%`;
+
+                        html += `<div class="day-cell level-${level} ${isToday ? 'today' : ''}" 
+                            data-uid="${uid}" data-day="${day}" data-month="${month}" data-year="${year}"
+                            data-total="${stats.total}" data-correct="${stats.correct}" data-wrong="${stats.wrong}"
+                            data-pct="${Math.round(pctOfNorm)}"
+                            title="${tooltipText}">
+                            <span class="day-number">${day}</span>
+                        </div>`;
+                    } else {
+                        html += `<div class="day-cell no-data ${isToday ? 'today' : ''}"><span class="day-number">${day}</span></div>`;
+                    }
+                }
+
+                html += '</div>';
+                return html;
+            }
+
+            // Функция отрисовки всех учеников
+            function renderAllStudents() {
+                const monthYear = currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+                let html = `
+                    <div class="calendar-nav">
+                        <button id="prevMonthBtn">◀</button>
+                        <span>${monthYear}</span>
+                        <button id="nextMonthBtn">▶</button>
+                    </div>
+                `;
+
+                for (const uid of studentIds) {
+                    const studentName = students[uid]?.name || uid;
+                    const progress = allProgress[uid] || {};
+                    const norm = savedNorms[uid] || 100;
+
+                    html += `
+                        <div class="date-stats-student">
+                            <div class="student-header" data-uid="${uid}">
+                                <span>👤 ${escapeHtml(studentName)}</span>
+                                <span style="display:flex; align-items:center; gap:0.5rem;">
+                                    <button class="btn small outline parent-link-btn" data-uid="${uid}" data-name="${escapeHtml(studentName)}" style="font-size:0.75rem; padding:0.2rem 0.6rem;" title="Управление ссылкой для родителя">🔗 Ссылка для родителя</button>
+                                    <span>▸</span>
+                                </span>
+                            </div>
+                            <div class="student-content" style="display:none;">
+                                <div class="norm-input">
+                                    <label>Норма заданий в день:</label>
+                                    <input type="number" class="norm-input-field" data-uid="${uid}" value="${norm}" min="1" max="1000">
+                                    <button class="btn small save-norm-btn" data-uid="${uid}">💾</button>
+                                </div>
+                                ${buildCalendar(uid, studentName, progress, norm, currentDate)}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                // Обработчики кнопок "Ссылка для родителя"
+                container.querySelectorAll('.parent-link-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        showParentLinkDialog(btn.dataset.uid, btn.dataset.name);
+                    };
+                });
+
+                // Навигация по месяцам
+                document.getElementById('prevMonthBtn').onclick = () => {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderAllStudents();
+                };
+                document.getElementById('nextMonthBtn').onclick = () => {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderAllStudents();
+                };
+
+                // Разворачивание учеников
+                container.querySelectorAll('.student-header').forEach(header => {
+                    header.onclick = function() {
+                        const content = this.nextElementSibling;
+                        const arrow = this.querySelector('span:last-child');
+                        if (content.style.display === 'none') {
+                            content.style.display = 'block';
+                            arrow.textContent = '▾';
+                        } else {
+                            content.style.display = 'none';
+                            arrow.textContent = '▸';
+                        }
+                    };
+                });
+
+                // Tooltip при наведении
+                container.querySelectorAll('.day-cell:not(.no-data)').forEach(cell => {
+                    cell.addEventListener('mouseenter', function(e) {
+                        const existing = document.querySelector('.day-cell-tooltip');
+                        if (existing) existing.remove();
+
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'day-cell-tooltip';
+                        const total = this.dataset.total;
+                        const correct = this.dataset.correct;
+                        const wrong = this.dataset.wrong;
+                        const pct = this.dataset.pct;
+                        const day = this.dataset.day;
+                        const month = parseInt(this.dataset.month) + 1;
+                        const year = this.dataset.year;
+                        const studentName = students[this.dataset.uid]?.name || this.dataset.uid;
+
+                        tooltip.innerHTML = `
+                            <div class="tooltip-title">${escapeHtml(studentName)}, ${day}.${month}.${year}</div>
+                            <div class="tooltip-row">Всего заданий: <span>${total}</span></div>
+                            <div class="tooltip-row">✅ Правильно: <span class="correct">${correct}</span></div>
+                            <div class="tooltip-row">❌ Неправильно: <span class="wrong">${wrong}</span></div>
+                            <div class="tooltip-row">Выполнение нормы: <span>${pct}%</span></div>
+                        `;
+                        document.body.appendChild(tooltip);
+
+                        const rect = this.getBoundingClientRect();
+                        tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                        tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+
+                        // Если тултип выходит за границы экрана
+                        if (tooltip.offsetTop < 0) {
+                            tooltip.style.top = (rect.bottom + 8) + 'px';
+                        }
+                        if (tooltip.offsetLeft < 0) {
+                            tooltip.style.left = '8px';
+                        }
+                        if (tooltip.offsetLeft + tooltip.offsetWidth > window.innerWidth) {
+                            tooltip.style.left = (window.innerWidth - tooltip.offsetWidth - 8) + 'px';
+                        }
+                    });
+
+                    cell.addEventListener('mouseleave', function() {
+                        const tooltip = document.querySelector('.day-cell-tooltip');
+                        if (tooltip) tooltip.remove();
+                    });
+                });
+
+                // Клик по ячейке — боковая панель
+                container.querySelectorAll('.day-cell:not(.no-data)').forEach(cell => {
+                    cell.addEventListener('click', function() {
+                        showDayStats(this.dataset.uid, parseInt(this.dataset.day), parseInt(this.dataset.month), parseInt(this.dataset.year));
+                    });
+                });
+
+                // Сохранение нормы
+                container.querySelectorAll('.save-norm-btn').forEach(btn => {
+                    btn.onclick = async function() {
+                        const uid = this.dataset.uid;
+                        const input = document.querySelector(`.norm-input-field[data-uid="${uid}"]`);
+                        const newNorm = parseInt(input.value) || 100;
+                        savedNorms[uid] = newNorm;
+                        await set(ref(db, `teachers/${teacherId}/dateStatsNorms/${uid}`), newNorm);
+                        // Перестраиваем календарь для этого ученика
+                        const studentContent = this.closest('.student-content');
+                        const studentName = students[uid]?.name || uid;
+                        const progress = allProgress[uid] || {};
+                        studentContent.querySelector('.calendar-grid')?.remove();
+                        // Вставляем новый календарь после norm-input
+                        const normDiv = studentContent.querySelector('.norm-input');
+                        const newCalendar = document.createElement('div');
+                        newCalendar.innerHTML = buildCalendar(uid, studentName, progress, newNorm, currentDate);
+                        normDiv.after(newCalendar.firstElementChild);
+                        // Перепривязываем события
+                        rebindEvents();
+                    };
+                });
+            }
+
+            // Перепривязка событий после обновления календаря
+            function rebindEvents() {
+                container.querySelectorAll('.day-cell:not(.no-data)').forEach(cell => {
+                    cell.addEventListener('mouseenter', function(e) {
+                        const existing = document.querySelector('.day-cell-tooltip');
+                        if (existing) existing.remove();
+
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'day-cell-tooltip';
+                        const total = this.dataset.total;
+                        const correct = this.dataset.correct;
+                        const wrong = this.dataset.wrong;
+                        const pct = this.dataset.pct;
+                        const day = this.dataset.day;
+                        const month = parseInt(this.dataset.month) + 1;
+                        const year = this.dataset.year;
+                        const studentName = students[this.dataset.uid]?.name || this.dataset.uid;
+
+                        tooltip.innerHTML = `
+                            <div class="tooltip-title">${escapeHtml(studentName)}, ${day}.${month}.${year}</div>
+                            <div class="tooltip-row">Всего заданий: <span>${total}</span></div>
+                            <div class="tooltip-row">✅ Правильно: <span class="correct">${correct}</span></div>
+                            <div class="tooltip-row">❌ Неправильно: <span class="wrong">${wrong}</span></div>
+                            <div class="tooltip-row">Выполнение нормы: <span>${pct}%</span></div>
+                        `;
+                        document.body.appendChild(tooltip);
+
+                        const rect = this.getBoundingClientRect();
+                        tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                        tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+
+                        if (tooltip.offsetTop < 0) {
+                            tooltip.style.top = (rect.bottom + 8) + 'px';
+                        }
+                        if (tooltip.offsetLeft < 0) {
+                            tooltip.style.left = '8px';
+                        }
+                        if (tooltip.offsetLeft + tooltip.offsetWidth > window.innerWidth) {
+                            tooltip.style.left = (window.innerWidth - tooltip.offsetWidth - 8) + 'px';
+                        }
+                    });
+
+                    cell.addEventListener('mouseleave', function() {
+                        const tooltip = document.querySelector('.day-cell-tooltip');
+                        if (tooltip) tooltip.remove();
+                    });
+
+                    cell.addEventListener('click', function() {
+                        showDayStats(this.dataset.uid, parseInt(this.dataset.day), parseInt(this.dataset.month), parseInt(this.dataset.year));
+                    });
+                });
+            }
+
+            // Боковая панель статистики за день
+            function showDayStats(uid, day, month, year) {
+                // Удаляем существующую панель
+                const existing = document.querySelector('.day-stats-panel');
+                if (existing) existing.remove();
+
+                const studentName = students[uid]?.name || uid;
+                const progress = allProgress[uid] || {};
+                const dateStr = `${day}.${month+1}.${year}`;
+
+                // Собираем детализацию по темам
+                const topicDetails = {};
+                let totalCorrect = 0;
+                let totalWrong = 0;
+
+                for (const topicId of Object.keys(progress)) {
+                    const topic = progress[topicId];
+                    if (!topic.questions) continue;
+                    for (const qKey of Object.keys(topic.questions)) {
+                        const q = topic.questions[qKey];
+                        if (!q.history) continue;
+                        for (const h of q.history) {
+                            if (!h.timestamp) continue;
+                            const d = new Date(h.timestamp);
+                            if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) {
+                                if (!topicDetails[topicId]) {
+                                    topicDetails[topicId] = { title: topicsLookup[topicId] || topic.title || topicId, correct: 0, wrong: 0 };
+                                }
+                                if (h.correct) {
+                                    topicDetails[topicId].correct++;
+                                    totalCorrect++;
+                                } else {
+                                    topicDetails[topicId].wrong++;
+                                    totalWrong++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const total = totalCorrect + totalWrong;
+                const pct = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
+
+                const panel = document.createElement('div');
+                panel.className = 'day-stats-panel open';
+                panel.innerHTML = `
+                    <button class="panel-close">&times;</button>
+                    <h3>📊 ${escapeHtml(studentName)}</h3>
+                    <p style="color:var(--text-secondary); margin-bottom:1rem;">${dateStr}</p>
+                    <div class="stat-row"><span class="label">Всего заданий</span><span class="value">${total}</span></div>
+                    <div class="stat-row"><span class="label">✅ Правильно</span><span class="value correct">${totalCorrect}</span></div>
+                    <div class="stat-row"><span class="label">❌ Неправильно</span><span class="value wrong">${totalWrong}</span></div>
+                    <div class="stat-row"><span class="label">Процент правильных</span><span class="value">${pct}%</span></div>
+                    <hr style="margin:1rem 0; border-color:var(--border);">
+                    <h4 style="margin-bottom:0.5rem;">По темам:</h4>
+                    ${Object.values(topicDetails).length === 0 ? '<p style="color:var(--text-secondary);">Нет данных</p>' :
+                        Object.values(topicDetails).map(td => `
+                            <div class="stat-row">
+                                <span class="label">${escapeHtml(td.title)}</span>
+                                <span class="value">✅${td.correct} ❌${td.wrong}</span>
+                            </div>
+                        `).join('')
+                    }
+                `;
+
+                document.body.appendChild(panel);
+
+                panel.querySelector('.panel-close').onclick = () => panel.remove();
+                // Закрытие по клику вне панели
+                setTimeout(() => {
+                    document.addEventListener('click', function closePanel(e) {
+                        if (!panel.contains(e.target) && !e.target.closest('.day-cell')) {
+                            panel.remove();
+                            document.removeEventListener('click', closePanel);
+                        }
+                    });
+                }, 100);
+            }
+
+            renderAllStudents();
+        }
+
+        renderTab('students');
+
+        // ===================== ССЫЛКИ ДЛЯ РОДИТЕЛЕЙ =====================
+        // Генерация случайного токена
+        function generateParentLinkToken() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let result = 'parent_';
+            for (let i = 0; i < 16; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Диалог управления ссылкой для родителя
+        async function showParentLinkDialog(studentId, studentName) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.style.zIndex = '10000';
+
+            // Загружаем текущие ссылки для этого ученика
+            const linksSnap = await get(ref(db, `teachers/${teacherId}/parentLinks`));
+            const allLinks = linksSnap.val() || {};
+
+            // Ищем активную ссылку для этого ученика
+            let activeToken = null;
+            let activeLinkData = null;
+            for (const [token, data] of Object.entries(allLinks)) {
+                if (data.studentId === studentId && data.active === true) {
+                    activeToken = token;
+                    activeLinkData = data;
+                    break;
+                }
+            }
+
+            const now = Date.now();
+            const isExpired = activeLinkData && now > activeLinkData.expiresAt;
+            const expiresDate = activeLinkData ? new Date(activeLinkData.expiresAt).toLocaleString('ru-RU') : '—';
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const linkUrl = activeToken ? `${baseUrl}parent.html?token=${activeToken}` : '—';
+
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:480px;">
+                    <button class="modal-close">&times;</button>
+                    <h3>🔗 Ссылка для родителя</h3>
+                    <p style="margin:0.5rem 0 1rem; color:var(--text-secondary);">
+                        Ученик: <strong>${escapeHtml(studentName)}</strong>
+                    </p>
+                    <div id="parentLinkStatus" style="margin-bottom:1rem;">
+                        ${activeToken ? `
+                            <div style="background:var(--bg); border-radius:8px; padding:1rem; border:1px solid var(--border);">
+                                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.3rem;">Текущая ссылка:</p>
+                                <div style="display:flex; gap:0.5rem; align-items:center;">
+                                    <input type="text" id="parentLinkUrl" value="${escapeHtml(linkUrl)}" readonly style="flex:1; font-size:0.8rem; padding:0.4rem; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                    <button class="btn small" id="copyLinkBtn">📋 Копировать</button>
+                                </div>
+                                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.5rem;">
+                                    Действует до: ${expiresDate}
+                                    ${isExpired ? '<span style="color:#ef4444; font-weight:600;"> (истекла)</span>' : ''}
+                                </p>
+                            </div>
+                        ` : `
+                            <div style="background:var(--bg); border-radius:8px; padding:1rem; border:1px solid var(--border);">
+                                <p style="color:var(--text-secondary);">Ссылка ещё не создана.</p>
+                            </div>
+                        `}
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn" id="createNewLinkBtn">${activeToken ? '🔄 Создать новую ссылку' : '🔗 Создать ссылку'}</button>
+                        <button class="btn outline" id="closeLinkDialogBtn">Закрыть</button>
+                    </div>
+                    <div id="parentLinkActionStatus" style="margin-top:0.8rem; font-size:0.9rem;"></div>
+                </div>
+            `;
+
+            document.body.appendChild(backdrop);
+
+            const statusDiv = backdrop.querySelector('#parentLinkActionStatus');
+
+            // Копирование ссылки
+            const copyBtn = backdrop.querySelector('#copyLinkBtn');
+            if (copyBtn) {
+                copyBtn.onclick = () => {
+                    const input = backdrop.querySelector('#parentLinkUrl');
+                    if (input) {
+                        input.select();
+                        navigator.clipboard.writeText(input.value).then(() => {
+                            statusDiv.innerHTML = '<span style="color:#10b981;">✅ Ссылка скопирована!</span>';
+                            setTimeout(() => statusDiv.innerHTML = '', 2000);
+                        }).catch(() => {
+                            // Fallback
+                            document.execCommand('copy');
+                            statusDiv.innerHTML = '<span style="color:#10b981;">✅ Ссылка скопирована!</span>';
+                            setTimeout(() => statusDiv.innerHTML = '', 2000);
+                        });
+                    }
+                };
+            }
+
+            // Создание новой ссылки
+            backdrop.querySelector('#createNewLinkBtn').onclick = async () => {
+                const btn = backdrop.querySelector('#createNewLinkBtn');
+                btn.disabled = true;
+                btn.textContent = '⏳ Создание...';
+                statusDiv.innerHTML = '';
+
+                try {
+                    // Деактивируем старую ссылку, если есть
+                    if (activeToken) {
+                        await update(ref(db, `teachers/${teacherId}/parentLinks/${activeToken}`), { active: false });
+                    }
+
+                    // Создаём новую ссылку
+                    const newToken = generateParentLinkToken();
+                    const now = Date.now();
+                    const sixMonths = 6 * 30 * 24 * 60 * 60 * 1000; // 6 месяцев
+
+                    await set(ref(db, `teachers/${teacherId}/parentLinks/${newToken}`), {
+                        studentId: studentId,
+                        studentName: studentName,
+                        teacherId: teacherId,
+                        createdAt: now,
+                        expiresAt: now + sixMonths,
+                        active: true
+                    });
+
+                    statusDiv.innerHTML = '<span style="color:#10b981;">✅ Новая ссылка создана! Диалог будет обновлён.</span>';
+                    setTimeout(() => {
+                        backdrop.remove();
+                        showParentLinkDialog(studentId, studentName);
+                    }, 1000);
+                } catch (error) {
+                    statusDiv.innerHTML = `<span style="color:#ef4444;">❌ Ошибка: ${error.message}</span>`;
+                    btn.disabled = false;
+                    btn.textContent = activeToken ? '🔄 Создать новую ссылку' : '🔗 Создать ссылку';
+                }
+            };
+
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#closeLinkDialogBtn').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+        }
+
+        // Image resize functionality
+        document.addEventListener('mousedown', function(e) {
+            const handle = e.target.closest('.resize-handle');
+            if (!handle) return;
+            e.preventDefault();
+            const container = handle.closest('.resizable-image-container');
+            const img = container.querySelector('.resizable-image');
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startW = container.offsetWidth;
+            const startH = container.offsetHeight;
+            const aspect = startW / startH;
+
+            function onMove(ev) {
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                let newW = startW + dx;
+                let newH = newW / aspect;
+                container.style.width = newW + 'px';
+                container.style.height = newH + 'px';
+            }
+
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForeStudy — Ученик</title>
+    <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║                     ОГЛАВЛЕНИЕ student.html                 ║
+    ╠══════════════════════════════════════════════════════════════╣
+    ║  1-160   │ CSS стили                                        ║
+    ║ 161-179  │ HTML: header, container, политика                ║
+    ║ 180-181  │ Подключение config.js, offline-helper.js         ║
+    ║ 182-194  │ Firebase init (module), window._db экспорт       ║
+    ║ 196-223  │ showNotification()                               ║
+    ║ 225-226  │ Статус подключения (online/offline dot)          ║
+    ║ 228      │ safeKey()                                        ║
+    ║ 230-254  │ getIsFastTrack(), getMaxNeeded()                 ║
+    ║ 256-269  │ genRandomNick()                                  ║
+    ║ 271-290  │ currentStudent, theme, localStorage              ║
+    ║ 292      │ escapeHtml()                                     ║
+    ║ 294-305  │ ensureAuth()                                     ║
+    ║ 307      │ updateUIForUser()                                ║
+    ║ 309-328  │ checkForUpdates()                                ║
+    ║ 330-354  │ joinTeacher()                                    ║
+    ║ 356-362  │ getTakenNames()                                  ║
+    ║ 364-460  │ renderNicknameSelection()                        ║
+    ║ 462-574  │ renderLogin()                                    ║
+    ║ 576-607  │ showTask()                                       ║
+    ║ 609-631  │ showHelpModal()                                  ║
+    ║ 634-679  │ renderMyQuestions()                              ║
+    ║ 681-681  │ ─── ИТОГОВЫЙ ТЕСТ ───                           ║
+    ║ 684-696  │ showFinalTestBanner()                            ║
+    ║ 699-1034 │ startFinalTest()                                 ║
+    ║ 910-1032 │   └ finishFinalTest()                            ║
+    ║ 1036-1359│ renderDashboard()                                ║
+    ║ 1074-1092│   ├ renderOfflineTab()                           ║
+    ║ 1094-1176│   ├ cleanupDuplicateAnswers()                    ║
+    ║ 1178-1211│   ├ renderOfflineImportHistory()                 ║
+    ║ 1213-1261│   ├ renderTopicsTab()                            ║
+    ║ 1262-1357│   └ renderQuestionsTab()                         ║
+    ║ 1361-1369│ showModal()                                      ║
+    ║ 1371-1376│ showTheory()                                     ║
+    ║ 1378-1440│ showTopicStats()                                 ║
+    ║ 1442-1461│ showQuestionHistoryModal()                       ║
+    ║ 1463-1487│ showTeacherReply()                               ║
+    ║ 1489-1940│ startTest() (обычный тест)                       ║
+    ║ 1743-1938│   └ finishTest()                                 ║
+    ║ 1942-1952│ render()                                         ║
+    ║ 1954-1997│ init()                                           ║
+    ║ 2001-2030│ Image resize                                     ║
+    ║ 2032-2038│ Textarea auto-height                             ║
+    ║ 2040-2210│ processOfflineResults()                          ║
+    ╚══════════════════════════════════════════════════════════════╝
+    -->
+    <style>
+        :root {
+            --bg: #f5f7fb; --surface: #fff; --text: #1a1a2e; --text-secondary: #555;
+            --accent: #2e7d32; --accent-hover: #1b5e20; --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08); --header-bg: #ffffffcc; --backdrop: blur(10px);
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a; --surface: #1e293b; --text: #e2e8f0; --text-secondary: #94a3b8;
+            --accent: #4caf50; --accent-hover: #388e3c; --border: #334155;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4); --header-bg: #1e293bcc;
+        }
+        body.final-test-mode {
+            background: #d6eaf8 !important;
+            transition: background 0.5s ease;
+        }
+        [data-theme="dark"] body.final-test-mode {
+            background: #1a2a3a !important;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+        .header { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; padding: 0.75rem 1.5rem; background: var(--header-bg); backdrop-filter: var(--backdrop); border-bottom: 1px solid var(--border); box-shadow: var(--shadow); flex-wrap: wrap; gap: 0.5rem; }
+        .logo { font-weight: 700; font-size: 1.8rem; color: #2e7d32; display: flex; align-items: center; gap: 0.5rem; }
+        [data-theme="dark"] .logo { color: #4caf50; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+        .status-dot.online { background: #10b981; } .status-dot.offline { background: #ef4444; }
+        .user-area { flex: 1; display: flex; justify-content: center; }
+        .nickname { font-weight: 600; background: var(--surface); padding: 0.3rem 1rem; border-radius: 20px; border: 1px solid var(--border); }
+        .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--text); margin-left: auto; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; flex: 1; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; background: var(--accent); color: white; font-size: 0.9rem; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn.outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        .btn.outline:hover { background: var(--accent); color: white; }
+        .topic-card { border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; background: var(--surface); box-shadow: var(--shadow); position: relative; }
+        .question-card { margin-bottom: 2.5rem; }
+        .delete-question-btn { position: absolute; top: 1rem; right: 1rem; width: 30px; height: 30px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); color: var(--text-secondary); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .delete-question-btn:hover { background: var(--border); color: var(--text); }
+        .waiting-answer-btn { padding: 0.5rem 1.2rem; border-radius: 2rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; min-width: 140px; height: 36px; }
+        .btn.small { padding: 0.5rem 1.2rem; font-size: 0.9rem; min-width: 140px; height: 36px; }
+        .waiting-answer-btn.waiting { background: #f0e68c; color: #1a1a2e; width: 160px; }
+        .waiting-answer-btn.received { background: #2e7d32; color: white; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { background: white; color: #2e7d32; } 50% { background: #2e7d32; color: white; } 100% { background: white; color: #2e7d32; } }
+        .question-content { margin-bottom: 1.5rem; }
+        .question-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-secondary); }
+        .question-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 1rem; }
+        .modal-content { background: var(--surface); padding: 2rem; border-radius: 16px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 0.5rem; right: 0.8rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+        .test-question { border: 2px solid var(--accent); border-radius: 8px; padding: 1rem; margin: 1rem 0; background: var(--surface); }
+        [data-theme="dark"] .test-question { border-color: #4caf50; background: #1a2a1a; }
+        .option label { display: block; margin: 0.5rem 0; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .option label:hover { background: var(--bg); border-color: var(--accent); }
+        .explanation { font-style: italic; color: var(--text-secondary); margin-top: 0.5rem; padding: 0.5rem; background: var(--bg); border-radius: 4px; }
+        .timer { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--accent); }
+        .question-progress { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; text-align: center; }
+        .card-flip { perspective: 1000px; height: 180px; margin-bottom: 1rem; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; cursor: pointer; }
+        .card-flip.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; padding: 1rem; display: flex; justify-content: center; align-items: center; text-align: center; background: var(--surface); border: 2px solid var(--accent); box-shadow: var(--shadow); font-size: 1.1rem; }
+        .card-back { transform: rotateY(180deg); background: var(--accent); color: white; }
+        .empty-message { color: var(--text-secondary); font-style: italic; padding: 2rem 0; text-align: center; }
+        .level-badge { display: inline-block; width: 20px; height: 20px; border-radius: 50%; margin-right: 0.3rem; vertical-align: middle; }
+        .level-1 { background: #d97706; } .level-2 { background: #94a3b8; } .level-3 { background: #f59e0b; } .level-4 { background: #06b6d4; } .level-5 { background: #8b5cf6; }
+        .progress-bar { height: 8px; border-radius: 4px; background: var(--border); margin: 0.5rem 0; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+        .error-progress-fill { height: 100%; border-radius: 4px; background: #b91c1c; }
+        .deficit-progress-fill { height: 100%; border-radius: 4px; background: #eab308; }
+        .topic-actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .correct-answer { background-color: #d4edda; border-radius: 2px; padding: 0; }
+        .wrong-answer { background-color: #f8d7da; border-radius: 2px; padding: 0; }
+        [data-theme="dark"] .correct-answer { background-color: #1a3d2a; color: #4caf50; }
+        [data-theme="dark"] .wrong-answer { background-color: #3d1a1a; color: #ff6b6b; }
+        .score-circle { width: 140px; height: 140px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; margin: 1.5rem auto; transition: transform 0.6s ease; transform-style: preserve-3d; position: relative; cursor: pointer; }
+        .score-circle:hover { transform: rotateY(180deg); }
+        .score-circle .front, .score-circle .back { position: absolute; width: 100%; height: 100%; border-radius: 50%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .score-circle .front { z-index: 1; }
+        .score-circle .back { transform: rotateY(180deg); background: var(--surface); z-index: 0; overflow: hidden; }
+        .score-circle .back img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .quote { font-style: italic; color: var(--text-secondary); margin: 0.5rem 0; text-align: center; }
+        .question-link { cursor: pointer; } .question-link:hover { text-decoration: underline; }
+        details summary { cursor: pointer; font-weight: 600; }
+        .question-area { transition: filter 0.3s ease; }
+        .question-area.blurred { filter: blur(4px); }
+        .help-btn-wrap {
+            display: inline-flex; align-items: center;
+            cursor: pointer; height: 40px;
+        }
+        .help-btn-wrap .help-text {
+            font-size: 0.85rem; font-weight: 500;
+            white-space: nowrap; overflow: hidden;
+            width: 0; opacity: 0;
+            margin-right: -20px;
+            transition: width 0.35s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        opacity 0.25s ease 0.1s,
+                        padding 0.35s cubic-bezier(0.25, 0.1, 0.25, 1),
+                        background 0.3s ease,
+                        color 0.3s ease,
+                        border-color 0.3s ease;
+            padding: 0; height: 40px;
+            display: flex; align-items: center;
+            background: var(--surface);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-right: none;
+            border-radius: 20px 0 0 20px;
+            z-index: 1;
+        }
+        .help-btn-wrap:hover .help-text {
+            width: 320px; opacity: 1; padding: 0 4px 0 16px;
+            background: var(--accent); color: white;
+        }
+        .help-btn-wrap .help-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid var(--accent);
+            background: var(--surface); color: var(--accent); font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s ease,
+                        color 0.3s ease,
+                        border-color 0.3s ease;
+            position: relative; z-index: 2;
+        }
+        .help-btn-wrap:hover .help-btn {
+            background: var(--accent); color: white;
+        }
+        .btn-row { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
+        .final-test-banner {
+            background: #d6eaf8;
+            border: 2px solid #5dade2;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        [data-theme="dark"] .final-test-banner {
+            background: #1a3a5c;
+            border-color: #5dade2;
+        }
+        .final-test-banner h3 { color: #2c3e50; margin-bottom: 0.5rem; }
+        .final-test-banner p { color: #34495e; font-size: 0.95rem; margin-bottom: 1rem; }
+        [data-theme="dark"] .final-test-banner h3,
+        [data-theme="dark"] .final-test-banner p { color: #d6eaf8; }
+        .btn.final-test-btn {
+            background: #2980b9;
+        }
+        .btn.final-test-btn:hover {
+            background: #1a5276;
+        }
+        @media (max-width: 600px) { .header { padding: 0.5rem 1rem; } .logo { font-size: 1.4rem; } .container { padding: 0 0.5rem; } }
+        .resizable-image-container { display:inline-block; position:relative; max-width:100%; }
+        .resizable-image { display:block; max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border); }
+        .resize-handle { position:absolute; bottom:0; right:0; width:16px; height:16px; cursor:nwse-resize; background:rgba(0,0,0,0.3); border-radius:0 0 8px 0; }
+        .resize-handle::after { content:''; position:absolute; bottom:3px; right:3px; width:8px; height:8px; border-right:2px solid white; border-bottom:2px solid white; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo"><span class="status-dot" id="connectionDot"></span> ForeStudy · Ученик</div>
+        <div class="user-area" id="userArea" style="display:none;"><span class="nickname" id="nickDisplay"></span></div>
+        <button id="themeToggle" class="theme-toggle">🌙</button>
+        <button id="updateBtn" class="theme-toggle" title="Проверить обновление" style="display:none;">🔄</button>
+    </header>
+    <main class="container" id="app"></main>
+    <details style="max-width:800px;margin:2rem auto;padding:1rem;background:var(--surface);border-radius:12px;border:1px solid var(--border);">
+        <summary>📄 Политика конфиденциальности и обработки данных</summary>
+        <p>Сервис <strong>ForeStudy</strong> не собирает персональные данные. Ученикам присваивается уникальный логин.</p>
+        <p><strong>⚠️ Важное предупреждение:</strong> Не используйте в логине или пароле своё реальное имя, фамилию, адрес электронной почты, номер телефона или другие личные данные. Используйте вымышленный логин (например, «Зелёный_Дракон_2024»).</p>
+        <p><strong>Как хранятся данные:</strong> Логины и пароли хранятся в зашифрованном виде (алгоритм bcrypt). Пароль не может быть прочитан никем, включая учителя и администратора сервиса.</p>
+        <p><strong>Восстановление доступа:</strong> При утере пароля ученик может зарегистрироваться заново с тем же логином — прогресс восстановится автоматически. Учитель также может сбросить пароль ученика через панель управления.</p>
+        <p>Мы используем облачную платформу Firebase (Google). Google может собирать технические данные (IP-адрес, тип устройства, браузер).</p>
+        <p>Учебный прогресс и результаты тестов сохраняются анонимно. При удалении ученика данные хранятся ещё 30 дней.</p>
+        <p><strong>По всем вопросам:</strong> [vk.com/lesnikish]</p>
+    </details>
+    <script src="config.js"></script>
+    <script src="offline-helper.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue, get, update, remove, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        if (!window.firebaseConfig) { showNotification('config.js не загружен', 'error', 5000); throw new Error('Missing config'); }
+        const app = initializeApp(window.firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        // Экспортируем Firebase SDK для offline-helper.js (не модульный скрипт)
+        window._db = db;
+        window._get = get;
+        window._ref = ref;
+        
+        function showNotification(msg, type = 'info', timeout = 3000) {
+            let container = document.getElementById('appNotificationContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'appNotificationContainer';
+                container.style.position = 'fixed';
+                container.style.right = '20px';
+                container.style.top = '20px';
+                container.style.zIndex = '2000';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '8px';
+                document.body.appendChild(container);
+            }
+            const el = document.createElement('div');
+            el.textContent = msg;
+            el.style.padding = '0.6rem 1rem';
+            el.style.borderRadius = '8px';
+            el.style.background = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#1f2937';
+            el.style.color = 'white';
+            el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-8px)';
+            el.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+            container.appendChild(el);
+            requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+            setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-8px)'; setTimeout(() => el.remove(), 200); }, timeout);
+        }
+
+        const connectionDot = document.getElementById('connectionDot');
+        onValue(ref(db, '.info/connected'), snap => { connectionDot.className = 'status-dot ' + (snap.val() === true ? 'online' : 'offline'); });
+
+        function safeKey(str) { if (!str) return 'empty'; return 'q_' + String(str).replace(/[^a-zA-Z0-9а-яА-ЯёЁ_]/g, '_').slice(0,200); }
+
+        // Определяет, нужно ли вопросу 3 правильных (fast track) или 4
+        // firstCorrect === true → fast track
+        // Если firstCorrect === false, но после levelUpAt первый ответ был правильным и не было ошибок → fast track
+        function getIsFastTrack(qp, levelUpAt) {
+            if (!qp) return false;
+            if (qp.firstCorrect === true) return true;
+            // Если firstCorrect явно false (сброшен при level-up или после ошибки)
+            // проверяем историю после levelUpAt
+            if (qp.firstCorrect === false && levelUpAt) {
+                const history = qp.history || [];
+                const postLevelUp = history.filter(h => h.timestamp >= levelUpAt);
+                if (postLevelUp.length > 0) {
+                    // Первый ответ после levelUpAt был правильным и не было ошибок
+                    const firstPost = postLevelUp.sort((a, b) => a.timestamp - b.timestamp)[0];
+                    if (firstPost.correct && postLevelUp.every(h => h.correct)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        function getMaxNeeded(qp, levelUpAt) {
+            return getIsFastTrack(qp, levelUpAt) ? 3 : 4;
+        }
+
+        const maleColors = ["Красный", "Золотой", "Фиолетовый", "Оранжевый", "Голубой", "Розовый", "Белый", "Чёрный", "Серебристый", "Бирюзовый", "Лазурный", "Малиновый", "Коралловый", "Сиреневый", "Янтарный", "Изумрудный"];
+        const femaleColors = ["Красная", "Золотая", "Фиолетовая", "Оранжевая", "Голубая", "Розовая", "Белая", "Чёрная", "Серебристая", "Бирюзовая", "Лазурная", "Малиновая", "Коралловая", "Сиреневая", "Янтарная", "Изумрудная"];
+        const maleAnimals = ["Волк", "Пингвин", "Тигр", "Фламинго", "Ворон", "Лис", "Дракон", "Дельфин", "Ёж", "Краб", "Хамелеон", "Лев"];
+        const femaleAnimals = ["Лягушка", "Рыба", "Канарейка", "Сойка", "Сова", "Ящерица", "Змея"];
+        function genRandomNick() {
+            const isMale = Math.random() > 0.5;
+            const color = isMale 
+                ? maleColors[Math.floor(Math.random() * maleColors.length)]
+                : femaleColors[Math.floor(Math.random() * femaleColors.length)];
+            const animalsList = isMale ? maleAnimals : femaleAnimals;
+            const animal = animalsList[Math.floor(Math.random() * animalsList.length)];
+            const num = Math.floor(Math.random() * 9000) + 1000;
+            return `${color}_${animal}_${num}`;
+        }
+
+        const FIXED_TEACHER_ID = 'tioma';
+        let currentStudent = JSON.parse(localStorage.getItem('student_session')) || null;
+        if (currentStudent && currentStudent.teacherId !== FIXED_TEACHER_ID) {
+            currentStudent = null;
+            localStorage.removeItem('student_session');
+        }
+        // Делаем currentStudent глобальным для offline-helper.js
+        window.currentStudent = currentStudent;
+        // Обновляем window.currentStudent при каждом изменении
+        const origSetItem = localStorage.setItem.bind(localStorage);
+        localStorage.setItem = function(key, value) {
+            origSetItem(key, value);
+            if (key === 'student_session') {
+                window.currentStudent = JSON.parse(value || 'null');
+            }
+        };
+        let theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️';
+        document.getElementById('themeToggle').onclick = () => { theme = theme === 'light' ? 'dark' : 'light'; localStorage.setItem('theme', theme); document.documentElement.setAttribute('data-theme', theme); document.getElementById('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️'; };
+
+        function escapeHtml(text) { if (!text) return ''; const map = {'&':'&','<':'<','>':'>','"':'"',"'":'&#039;'}; return String(text).replace(/[&<>"']/g, m => map[m]); }
+        
+        async function ensureAuth() { 
+            return new Promise(resolve => { 
+                const unsub = onAuthStateChanged(auth, async user => { 
+                    unsub(); 
+                    if (user) resolve(user); 
+                    else { 
+                        const cred = await signInAnonymously(auth); 
+                        resolve(cred.user); 
+                    } 
+                }); 
+            }); 
+        }
+        
+        function updateUIForUser(name) { document.getElementById('userArea').style.display='flex'; document.getElementById('nickDisplay').textContent=name; document.getElementById('updateBtn').style.display='block'; }
+
+        async function checkForUpdates(silent = false) {
+            try {
+                if (!currentStudent) return;
+                const versionSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/appVersion`));
+                const teacherVersion = versionSnap.val()?.version || '1.0';
+                const localVersion = localStorage.getItem('app_version') || '1.0';
+                if (teacherVersion !== localVersion) {
+                    if (confirm(`Доступна новая версия программы (${teacherVersion}). Обновить?`)) {
+                        localStorage.setItem('app_version', teacherVersion);
+                        location.reload();
+                    }
+                } else if (!silent) {
+                    showNotification('У вас последняя версия программы.', 'info', 3000);
+                }
+            } catch (e) {
+                if (!silent) showNotification('Не удалось проверить обновление.', 'error', 3500);
+            }
+        }
+
+        document.getElementById('updateBtn').addEventListener('click', () => checkForUpdates(false));
+
+        async function joinTeacher() {
+            const errEl = document.getElementById('errorMsg');
+            const teacherId = FIXED_TEACHER_ID;
+            
+            const user = await ensureAuth(); 
+            const uid = user.uid;
+            const studentRef = ref(db, `teachers/${teacherId}/students/${uid}`);
+            const snap = await get(studentRef);
+            
+            if (snap.exists()) {
+                const data = snap.val();
+                if (data.deleted) { errEl.textContent = 'Доступ отозван учителем'; return; }
+                if (data.name) { 
+                    currentStudent = { teacherId, uid, name: data.name, nameConfirmed: true }; 
+                    localStorage.setItem('student_session', JSON.stringify(currentStudent)); 
+                    render(); 
+                    return;
+                }
+            }
+            
+            // Новый ученик или без имени
+            currentStudent = { teacherId, uid, name: null, nameConfirmed: false }; 
+            localStorage.setItem('student_session', JSON.stringify(currentStudent)); 
+            render(); 
+        }
+
+        async function getTakenNames() { 
+            if (!currentStudent || !currentStudent.teacherId) return [];
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/students`)); 
+            const names = []; 
+            if (snap.exists()) snap.forEach(child => { if (child.val().name) names.push(child.val().name); }); 
+            return names; 
+        }
+        
+        async function renderNicknameSelection(appEl) {
+            // При создании аккаунта инициализируем firstCorrect флаги для всех вопросов в теме позже
+            // Пока просто отображаем форму
+            
+            const taken = await getTakenNames();
+            let proposed = genRandomNick();
+            while (taken.includes(proposed)) proposed = genRandomNick();
+            
+            appEl.innerHTML = `
+                <div style="max-width:500px; margin:3rem auto; text-align:center;">
+                    <h2 style="color: #2e7d32;">✅ Добро пожаловать!</h2>
+                    <p style="margin:1rem 0;">Придумайте пароль для сохранения прогресса.</p>
+                    <div style="background:var(--surface); border-radius:16px; padding:1.5rem; border:1px solid var(--border);">
+                        <div style="font-size:1.5rem; font-weight:bold; margin:1rem 0;" id="proposedNick">${proposed}</div>
+                        <div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1.5rem;">
+                            <button class="btn outline" id="refreshNick">🎲 Обновить (цвет/животное/цифры)</button>
+                        </div>
+                        <input type="password" id="regPassword" placeholder="Придумайте пароль" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid var(--border);">
+                        <input type="password" id="regPasswordConfirm" placeholder="Подтвердите пароль" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid var(--border);">
+                        <div id="regError" style="color:#ef4444; margin-bottom:1rem;"></div>
+                        <button class="btn" id="acceptNick">✅ Создать аккаунт</button>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:1rem;">
+                        ⚠️ Не используйте личные данные. Пароль не может быть прочитан учителем.<br>
+                        При входе с другого устройства используйте тот же логин и пароль.
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('refreshNick').onclick = async () => {
+                const taken = await getTakenNames();
+                let newNick = genRandomNick();
+                while (taken.includes(newNick)) newNick = genRandomNick();
+                document.getElementById('proposedNick').textContent = newNick;
+            };
+            
+            document.getElementById('acceptNick').onclick = async () => {
+                const nick = document.getElementById('proposedNick').textContent;
+                const password = document.getElementById('regPassword').value;
+                const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+                const errorEl = document.getElementById('regError');
+                const taken = await getTakenNames();
+                
+                if (taken.includes(nick)) {
+                    errorEl.textContent = 'Этот псевдоним уже занят';
+                    return;
+                }
+                if (password !== passwordConfirm) {
+                    errorEl.textContent = 'Пароли не совпадают';
+                    return;
+                }
+                if (password.length < 6) {
+                    errorEl.textContent = 'Пароль должен быть не менее 6 символов';
+                    return;
+                }
+                
+                try {
+                    let safeNick = encodeURIComponent(nick).replace(/[^a-zA-Z0-9]/g, '').slice(0, 50);
+                    const fakeEmail = safeNick + '@temp.forestudy.local';
+                    const userCred = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+                    const uid = userCred.user.uid;
+                    
+                    await set(ref(db, `student_credentials/${uid}`), { nick, createdAt: Date.now(), teacherId: FIXED_TEACHER_ID });
+                    
+                    const teacherId = FIXED_TEACHER_ID;
+                    const oldUid = currentStudent.uid;
+                    
+                    const oldStudentSnap = await get(ref(db, `teachers/${teacherId}/students/${oldUid}`));
+                    if (oldStudentSnap.exists()) {
+                        const oldData = oldStudentSnap.val();
+                        oldData.name = nick;
+                        await set(ref(db, `teachers/${teacherId}/students/${uid}`), oldData);
+                        await set(ref(db, `teachers/${teacherId}/students/${oldUid}`), null);
+                    } else {
+                        // Создаём нового ученика у учителя
+                        await set(ref(db, `teachers/${teacherId}/students/${uid}`), {
+                            name: nick,
+                            createdAt: Date.now(),
+                            topicProgress: {}
+                        });
+                    }
+                    
+                    currentStudent = { teacherId, uid, name: nick, nameConfirmed: true };
+                    
+                    currentStudent = { teacherId, uid, name: nick, nameConfirmed: true };
+                    localStorage.setItem('student_session', JSON.stringify(currentStudent));
+                    render();
+                } catch (error) {
+                    console.error(error);
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorEl.textContent = 'Этот псевдоним уже используется';
+                    } else {
+                        errorEl.textContent = 'Ошибка: ' + error.message;
+                    }
+                }
+            };
+        }
+
+        async function renderLogin(appEl) {
+            appEl.innerHTML = `
+                <div style="max-width:400px; margin:3rem auto; text-align:center;">
+                    <h2>🔐 Вход для учеников</h2>
+                    <div style="margin-top:1.5rem;">
+                        <input type="text" id="loginNick" placeholder="Ваш псевдоним (например, Красный_Волк_1234)" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid var(--border);">
+                        <input type="password" id="loginPassword" placeholder="Пароль" style="width:100%; padding:0.8rem; margin-bottom:1rem; border-radius:8px; border:1px solid var(--border);">
+                        <button class="btn" id="loginBtn" style="width:100%;">Войти</button>
+                    </div>
+                    <div id="loginError" style="color:#ef4444; margin-top:1rem;"></div>
+                    <hr style="margin:1.5rem 0; border-color:var(--border);">
+                    <p style="font-size:0.9rem;">Впервые здесь? <button class="btn outline" id="showJoinBtn" style="margin-left:0.5rem;">Регистрация</button></p>
+                </div>
+            `;
+            
+            document.getElementById('loginBtn').onclick = async () => {
+                const nick = document.getElementById('loginNick').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                const errorEl = document.getElementById('loginError');
+                
+                if (!nick || !password) {
+                    errorEl.textContent = 'Введите псевдоним и пароль';
+                    return;
+                }
+                
+                try {
+                    const credentialsSnap = await get(ref(db, 'student_credentials'));
+                    let foundUid = null;
+                    let foundData = null;
+                    if (credentialsSnap.exists()) {
+                        for (const [uid, data] of Object.entries(credentialsSnap.val())) {
+                            if (data.nick === nick) {
+                                foundUid = uid;
+                                foundData = data;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!foundUid) {
+                        errorEl.textContent = 'Псевдоним не найден. Сначала зарегистрируйтесь через код доступа.';
+                        return;
+                    }
+                    
+                    // Проверяем, является ли пользователь призраком
+                    if (foundData && foundData.isGhost === true) {
+                        // Призрак — проверяем пароль через хэш (SHA-256)
+                        const encoder = new TextEncoder();
+                        const pwdData = encoder.encode(password + nick);
+                        const pwdHash = await crypto.subtle.digest('SHA-256', pwdData);
+                        const pwdHashHex = Array.from(new Uint8Array(pwdHash)).map(b => b.toString(16).padStart(2,'0')).join('');
+                        
+                        if (pwdHashHex !== foundData.passwordHash) {
+                            errorEl.textContent = 'Неверный псевдоним или пароль';
+                            return;
+                        }
+                        
+                        // Пароль верный — входим
+                        const teachersSnap = await get(ref(db, 'teachers'));
+                        if (teachersSnap.exists()) {
+                            for (const [teacherId, teacherData] of Object.entries(teachersSnap.val())) {
+                                if (teacherData.students && teacherData.students[foundUid]) {
+                                    currentStudent = {
+                                        teacherId,
+                                        uid: foundUid,
+                                        name: teacherData.students[foundUid].name,
+                                        nameConfirmed: true
+                                    };
+                                    localStorage.setItem('student_session', JSON.stringify(currentStudent));
+                                    render();
+                                    return;
+                                }
+                            }
+                        }
+                        errorEl.textContent = 'Учитель не найден';
+                        return;
+                    }
+                    
+                    // Обычный ученик — вход через Firebase Auth
+                    let safeNick = encodeURIComponent(nick).replace(/[^a-zA-Z0-9]/g, '').slice(0, 50);
+                    const fakeEmail = safeNick + '@temp.forestudy.local';
+                    await signInWithEmailAndPassword(auth, fakeEmail, password);
+                    
+                    const teachersSnap = await get(ref(db, 'teachers'));
+                    if (teachersSnap.exists()) {
+                        for (const [teacherId, teacherData] of Object.entries(teachersSnap.val())) {
+                            if (teacherData.students && teacherData.students[foundUid]) {
+                                currentStudent = {
+                                    teacherId,
+                                    uid: foundUid,
+                                    name: teacherData.students[foundUid].name,
+                                    nameConfirmed: true
+                                };
+                                localStorage.setItem('student_session', JSON.stringify(currentStudent));
+                                render();
+                                return;
+                            }
+                        }
+                    }
+                    errorEl.textContent = 'Учитель не найден';
+                } catch (error) {
+                    console.error(error);
+                    errorEl.textContent = 'Неверный псевдоним или пароль';
+                }
+            };
+            
+            document.getElementById('showJoinBtn').onclick = () => {
+                const appContainer = document.getElementById('app');
+                appContainer.innerHTML = `<div style="text-align:center; margin-top:3rem;"><h2>🔐 Регистрация нового ученика</h2><p style="margin:1rem 0;">Нажмите "Далее" для регистрации у учителя <strong>tioma</strong></p><button class="btn" id="joinBtn" style="width:200px;margin-top:1rem;">Далее</button><div id="errorMsg" style="color:#ef4444;margin-top:0.5rem;"></div><button class="btn outline" id="backToLoginBtn" style="margin-top:1rem;">← Назад к входу</button></div>`;
+                document.getElementById('joinBtn').onclick = () => joinTeacher();
+                document.getElementById('backToLoginBtn').onclick = () => renderLogin(appContainer);
+            };
+        }
+        // Separate function to handle viewing a task
+        async function showTask(topicId, taskQuestion) {
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`));
+            if (!snap.exists()) return;
+            const topic = snap.val();
+            const question = (topic.test || []).find(q => q.question === taskQuestion);
+            if (!question) return;
+            // Record the view action in the student's "questions" list with a flag
+            const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+            const studentSnap = await get(studentRef);
+            const student = studentSnap.val() || {};
+            const questions = student.questions || [];
+            // Check if a view record already exists for this task
+            const exists = questions.some(q => q.taskQuestion === taskQuestion && q.topicId === topicId && q.type === 'view');
+            if (!exists) {
+                questions.push({
+                    topicId,
+                    taskQuestion,
+                    timestamp: Date.now(),
+                    viewed: true,
+                    type: 'view'
+                });
+                await update(studentRef, { questions });
+            }
+            // Retrieve answer history for this question from the student's progress data
+            let history = [];
+            if (student.topicProgress && student.topicProgress[topicId]) {
+                const qpKey = safeKey(taskQuestion);
+                const qp = student.topicProgress[topicId].questions?.[qpKey];
+                if (qp && qp.history) history = qp.history;
+            }
+            showQuestionHistoryModal(question, history);
+        }
+
+        function showHelpModal(q, topicId) {
+            const modal = showModal(`<h3>Опишите проблему</h3><div style="margin: 1.5rem 0;"><textarea id="helpText" style="width:100%; height:100px; padding:0.5rem; border:1px solid var(--border); border-radius:8px;"></textarea></div><div style="display:flex; gap:0.5rem; margin-top:1.5rem;"><button class="btn" id="sendHelp">Отправить</button><button class="btn outline" id="cancelHelp">Отмена</button></div>`);
+            const textArea = modal.querySelector('#helpText');
+            const sendBtn = modal.querySelector('#sendHelp');
+            const cancelBtn = modal.querySelector('#cancelHelp');
+            sendBtn.onclick = async () => {
+                const text = textArea.value.trim();
+                if (!text) { showNotification('Введите текст', 'error', 3000); return; }
+                const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                const snap = await get(studentRef);
+                const student = snap.val();
+                const questions = student.questions || [];
+                questions.push({ topicId, questionText: text, timestamp: Date.now(), taskQuestion: q.question });
+                await update(studentRef, { questions });
+                modal.remove();
+                showNotification('Вопрос отправлен', 'success', 3000);
+            };
+            cancelBtn.onclick = () => {
+                const text = textArea.value.trim();
+                if (text && !confirm('Вы действительно хотите выйти? Введённый текст будет потерян.')) return;
+                modal.remove();
+            };
+        }
+
+        // Рендер списка "Мои вопросы" отдельно — можно вызывать для мгновенного обновления без перезагрузки
+        async function renderMyQuestions(container, studentData) {
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`));
+            const student = studentData || snap.val() || {};
+            const allQuestions = (student.questions || []).filter(q => q.type !== 'view');
+            if (!allQuestions.length) {
+                container.innerHTML = '<div class="empty-message">Нет отправленных вопросов.</div>';
+                return;
+            }
+            let html = '<h2>❓ Мои вопросы</h2>';
+            allQuestions.slice().reverse().forEach(q => {
+                const date = new Date(q.timestamp).toLocaleString('ru-RU');
+                const qId = q.timestamp + '_' + (q.topicId || '');
+                html += `<div class="topic-card" data-qid="${qId}"><p><strong>${escapeHtml(q.questionText)}</strong></p><p style="font-size:0.8rem; color:var(--text-secondary);">Отправлено: ${date}</p><button class="btn small view-task" data-topicid="${q.topicId}" data-taskquestion='${JSON.stringify(q.taskQuestion)}'>Просмотреть задание</button> <button class="btn small outline delete-question" data-topicid="${q.topicId}" data-taskquestion='${JSON.stringify(q.taskQuestion)}'>Удалить</button></div>`;
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.view-task').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const topicId = btn.dataset.topicid;
+                    let taskQ;
+                    try { taskQ = JSON.parse(btn.dataset.taskquestion); } catch { taskQ = btn.dataset.taskquestion; }
+                    showTask(topicId, taskQ);
+                });
+            });
+            container.querySelectorAll('.delete-question').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Удалить этот вопрос?')) return;
+                    const topicId = btn.dataset.topicid;
+                    const taskQRaw = btn.dataset.taskquestion;
+                    let taskQ;
+                    try { taskQ = JSON.parse(taskQRaw); } catch { taskQ = taskQRaw; }
+                    const tqStr = typeof taskQ === 'object' ? JSON.stringify(taskQ) : String(taskQ);
+                    const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                    const snap2 = await get(studentRef);
+                    const student2 = snap2.val() || {};
+                    const filtered = (student2.questions || []).filter(q => {
+                        const qTask = q.taskQuestion;
+                        const qStr = typeof qTask === 'object' ? JSON.stringify(qTask) : String(qTask);
+                        return !(q.topicId === topicId && qStr === tqStr && q.type !== 'view');
+                    });
+                    await update(studentRef, { questions: filtered });
+                    // Обновляем только вкладку "Мои вопросы"
+                    const tabContent = document.getElementById('tabContent');
+                    if (tabContent) await renderMyQuestions(tabContent);
+                });
+            });
+        }
+
+        // ===================== ИТОГОВЫЙ ТЕСТ =====================
+        
+        // Показывает баннер о необходимости пройти итоговый тест
+        function showFinalTestBanner(topic) {
+            const banner = document.createElement('div');
+            banner.className = 'final-test-banner';
+            banner.id = `finalTestBanner_${topic.id}`;
+            banner.innerHTML = `
+                <h3>🎯 Все задания темы "${escapeHtml(topic.title)}" освоены!</h3>
+                <p>Теперь вам нужно пройти итоговый тест, чтобы перейти на новый уровень.<br>
+                Итоговый тест содержит <strong>все задания</strong> из темы.</p>
+                <p style="color:#c0392b; font-weight:600; margin:0.5rem 0; font-size:0.9rem;">⚠️ Во время итогового теста нельзя пользоваться теорией, конспектами или другими пометками!</p>
+                <button class="btn final-test-btn" id="startFinalTest_${topic.id}">🏁 Начать итоговый тест</button>
+            `;
+            return banner;
+        }
+
+        // Запуск итогового теста (все вопросы темы, без адаптивной выборки)
+        async function startFinalTest(topicId) {
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`)); 
+            if (!snap.exists()) return;
+            const topic = snap.val(); 
+            const allQuestions = topic.test || []; 
+            if (!allQuestions.length) return alert('В теме нет теста.');
+
+            // Итоговый тест использует ВСЕ вопросы темы
+            let testQuestions = [...allQuestions];
+            if (topic.randomOrder) testQuestions = testQuestions.sort(() => Math.random() - 0.5);
+
+            const total = testQuestions.length;
+            let current = 0; 
+            const answers = []; 
+            let timerInterval, timeLeft, answered;
+            const backdrop = document.createElement('div'); 
+            backdrop.className = 'modal-backdrop'; 
+            document.body.appendChild(backdrop);
+
+            let lastActionTime = 0;
+            let answerSubmittedTime = 0;
+            function clearTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+            function removeGlobalEnter() { document.removeEventListener('keypress', onGlobalEnter); }
+            function onGlobalEnter(e) { 
+                if (e.key === 'Enter' && Date.now() - lastActionTime > 500 && Date.now() - answerSubmittedTime > 600) { 
+                    e.preventDefault(); 
+                    const nextBtn = document.getElementById('nextQuestionBtn'); 
+                    if (nextBtn) nextBtn.click(); 
+                } 
+            }
+
+            function showResult(q, isCorrect, details) {
+                clearTimer();
+                removeGlobalEnter();
+                const content = backdrop.querySelector('#questionContent'), td = backdrop.querySelector('#timerDisplay'), pd = backdrop.querySelector('#questionProgress');
+                if (td) td.style.display = 'none';
+                if (pd) pd.style.display = 'none';
+                const imgHtml = q.image ? `<div class="resizable-image-container" style="margin-bottom:0.8rem;${q.imageWidth ? `width:${q.imageWidth}px;height:${q.imageHeight}px;` : ''}"><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+                let html = `<div class="question-area" id="questionArea">${imgHtml}<p style="font-size:1.1rem; margin-bottom:1rem;"><strong>${escapeHtml(q.question)}</strong></p>`;
+                if (q.type === 'choice') {
+                    html += '<div class="option">';
+                    q.options.forEach((opt, i) => {
+                        let cls = '';
+                        if (i === details.correctIdx) cls = 'correct-answer';
+                        if (i === details.chosenIdx && !isCorrect) cls = 'wrong-answer';
+                        html += `<div class="${cls}" style="margin:0.3rem 0; padding:0.3rem; border-radius:4px;">${escapeHtml(opt)} ${i === details.correctIdx ? '✓' : ''} ${i === details.chosenIdx && !isCorrect ? '✗' : ''}</div>`;
+                    });
+                    html += '</div>';
+                } else if (q.type === 'open') {
+                    const ua = details.userAnswer || '';
+                    const ca = details.correctAnswer || '';
+                    const punctuationWarning = details.punctuationWarning || false;
+                    if (isCorrect && !punctuationWarning) {
+                        html += `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p>`;
+                    } else if (isCorrect && punctuationWarning) {
+                        html += `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p style="color:#d4a017;">🔍 Забыли знак препинания?</p>`;
+                    } else {
+                        const maxLen = Math.max(ua.length, ca.length);
+                        let userHtml = '', correctHtml = '';
+                        for (let i = 0; i < maxLen; i++) {
+                            const uChar = ua[i] || '';
+                            const cChar = ca[i] || '';
+                            if (uChar === cChar) {
+                                userHtml += escapeHtml(uChar);
+                                correctHtml += escapeHtml(cChar);
+                            } else {
+                                userHtml += `<span class="wrong-answer">${escapeHtml(uChar || ' ')}</span>`;
+                                correctHtml += `<span class="correct-answer">${escapeHtml(cChar || ' ')}</span>`;
+                            }
+                        }
+                        html += `<p>Ваш ответ: ${userHtml || '—'}</p><p>Правильный: ${correctHtml || '—'}</p>`;
+                    }
+                } else if (q.type === 'card') {
+                    html += `<p>Карточка ${isCorrect ? 'просмотрена' : 'не просмотрена'}</p>`;
+                }
+                if (q.explanation) {
+                    html += `<div class="explanation">💡 ${escapeHtml(q.explanation)}`;
+                    if (q.explanationImage) {
+                        html += `<div class="resizable-image-container" style="margin-top:0.5rem;${q.explanationImageWidth ? `width:${q.explanationImageWidth}px;height:${q.explanationImageHeight}px;` : ''}"><img src="${escapeHtml(q.explanationImage)}" class="resizable-image" alt="Изображение к объяснению"><div class="resize-handle"></div></div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += '</div>';
+                const isLast = current === total - 1;
+                html += `<div class="btn-row"><button class="btn" id="nextQuestionBtn">${isLast ? 'Завершить итоговый тест 🏁' : 'Далее ➡️'}</button></div>`;
+                content.innerHTML = html;
+                const nextBtn = document.getElementById('nextQuestionBtn');
+                if (isLast) nextBtn.onclick = () => { removeGlobalEnter(); finishFinalTest(); };
+                else nextBtn.onclick = () => { removeGlobalEnter(); current++; renderQuestion(); };
+                lastActionTime = Date.now();
+                document.addEventListener('keypress', onGlobalEnter);
+            }
+
+            function autoSubmit(q) {
+                if (answered) return;
+                answered = true;
+                clearTimer();
+                if (q.type === 'card') {
+                    answers.push({ question: q.question, correct: false, timeLeft: 0 });
+                    showResult(q, false, null);
+                } else if (q.type === 'open') {
+                    const ua = backdrop.querySelector('#openAnswer')?.value?.trim() || '';
+                    let corr = ua.toLowerCase() === (q.correctAnswer || '').toLowerCase();
+                    let punctuationWarning = false;
+                    if (!corr && ua.length > 0 && q.correctAnswer && q.correctAnswer.length > 0) {
+                        const lastChar = q.correctAnswer.slice(-1);
+                        if ('.,!?;:'.includes(lastChar)) {
+                            const uaWithoutLast = ua.slice(-1) === lastChar ? ua.slice(0, -1) : ua;
+                            const caWithoutLast = q.correctAnswer.slice(0, -1);
+                            if (uaWithoutLast.toLowerCase() === caWithoutLast.toLowerCase()) {
+                                corr = true;
+                                punctuationWarning = true;
+                            }
+                        }
+                    }
+                    answers.push({ type: 'open', question: q.question, correct: corr, correctAnswer: q.correctAnswer, explanation: q.explanation, timeLeft: 0, userAnswer: ua, punctuationWarning });
+                    showResult(q, corr, { userAnswer: ua, correctAnswer: q.correctAnswer, explanation: q.explanation, punctuationWarning });
+                } else {
+                    const sel = backdrop.querySelector('input[name="choice"]:checked');
+                    const idx = sel ? parseInt(sel.value) : -1;
+                    answers.push({ type: 'choice', question: q.question, correct: false, correctIdx: q.correct, options: q.options, explanation: q.explanation, timeLeft: 0, chosenIdx: idx });
+                    showResult(q, false, { chosenIdx: idx, correctIdx: q.correct, options: q.options, explanation: q.explanation });
+                }
+            }
+
+            function renderQuestion() {
+                clearTimer(); 
+                removeGlobalEnter();
+                if (current >= total) { finishFinalTest(); return; }
+                const q = testQuestions[current]; 
+                timeLeft = q.timeLimit || topic.timeLimit || 30; 
+                answered = false;
+                backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button><div class="question-progress">Задание ${current + 1} из ${total}</div><div class="timer" id="timerDisplay">⏱ ${timeLeft} сек</div><div id="questionContent"></div></div>`;
+                backdrop.querySelector('.modal-close').onclick = () => { clearTimer(); backdrop.remove(); };
+                const content = backdrop.querySelector('#questionContent');
+                const imgHtml = q.image ? `<div class="resizable-image-container"${q.imageWidth ? ` style="width:${q.imageWidth}px;height:${q.imageHeight}px;"` : ''}><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+                if (q.type === 'card') content.innerHTML = `<div class="card-flip"><div class="card-inner"><div class="card-front">${escapeHtml(q.question)}</div><div class="card-back">${escapeHtml(q.answer)}</div></div></div><div style="display:flex; gap:0.5rem; margin-top:1rem;"><button class="btn" id="cardFlipBtn">Перевернуть</button><button class="btn outline" id="cardDoneBtn">Я посмотрел</button></div>`;
+                else if (q.type === 'open') content.innerHTML = `${imgHtml}<p style="margin-bottom:1.5rem;"><strong>${escapeHtml(q.question)}</strong></p><textarea id="openAnswer" placeholder="Ваш ответ" spellcheck="false" rows="1" style="width:100%; padding:0.8rem; border-radius:8px; border:2px solid var(--border); font-size:1rem; resize: none; overflow-y: hidden; min-height: 48px;"></textarea><button class="btn" id="submitOpenBtn" style="margin-top:1.5rem;">Ответить</button>`;
+                else content.innerHTML = `${imgHtml}<p style="margin-bottom:1.5rem;"><strong>${escapeHtml(q.question)}</strong></p><div class="option">${q.options.map((o, i) => `<label><input type="radio" name="choice" value="${i}"> ${escapeHtml(o)}</label>`).join('')}</div><button class="btn" id="submitChoiceBtn" style="margin-top:1.5rem;">Ответить</button>`;
+                timerInterval = setInterval(() => { 
+                    timeLeft--; 
+                    const td = backdrop.querySelector('#timerDisplay'); 
+                    if (td) td.textContent = `⏱ ${timeLeft} сек`; 
+                    if (timeLeft <= 0) { 
+                        clearTimer(); 
+                        if (!answered) autoSubmit(q); 
+                    } 
+                }, 1000);
+                if (q.type === 'card') { 
+                    backdrop.querySelector('#cardFlipBtn').onclick = () => backdrop.querySelector('.card-flip').classList.toggle('flipped'); 
+                    backdrop.querySelector('#cardDoneBtn').onclick = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        answerSubmittedTime = Date.now(); 
+                        answers.push({ type: 'card', question: q.question, correct: true, timeLeft }); 
+                        showResult(q, true, null); 
+                    }; 
+                } else if (q.type === 'open') {
+                    const inp = backdrop.querySelector('#openAnswer'); 
+                    const submitBtn = backdrop.querySelector('#submitOpenBtn');
+                    const onOpenSubmit = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        removeGlobalEnter(); 
+                        answerSubmittedTime = Date.now(); 
+                        const ua = inp.value.trim(); 
+                        const ca = (q.correctAnswer || '').trim(); 
+                        let corr = ua === ca; 
+                        let punctuationWarning = false; 
+                        if (!corr) { 
+                            const punctMarks = ['.', ',', '!', '?', ';', ':']; 
+                            for (const mark of punctMarks) { 
+                                if (ua + mark === ca) { 
+                                    corr = true; 
+                                    punctuationWarning = true; 
+                                    break; 
+                                } 
+                                if (ua === ca + mark) { 
+                                    corr = true; 
+                                    punctuationWarning = true; 
+                                    break; 
+                                } 
+                            } 
+                        } 
+                        answers.push({ type: 'open', question: q.question, correct: corr, correctAnswer: q.correctAnswer, explanation: q.explanation, timeLeft, userAnswer: ua, punctuationWarning });
+                        showResult(q, corr, { userAnswer: ua, correctAnswer: q.correctAnswer, punctuationWarning });
+                    };
+                    submitBtn.onclick = onOpenSubmit; 
+                    inp.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); onOpenSubmit(); } }); 
+                    inp.focus();
+                } else { 
+                    const submitBtn = backdrop.querySelector('#submitChoiceBtn'); 
+                    const onChoiceSubmit = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        removeGlobalEnter(); 
+                        answerSubmittedTime = Date.now(); 
+                        const sel = backdrop.querySelector('input[name="choice"]:checked'); 
+                        const idx = sel ? parseInt(sel.value) : -1; 
+                        const corr = idx === q.correct; 
+                        answers.push({ type: 'choice', question: q.question, correct: corr, correctIdx: q.correct, options: q.options, explanation: q.explanation, timeLeft, chosenIdx: idx }); 
+                        showResult(q, corr, { chosenIdx: idx, correctIdx: q.correct }); 
+                    }; 
+                    submitBtn.onclick = onChoiceSubmit; 
+                }
+            }
+
+            let testFinishing = false;
+            async function finishFinalTest() {
+                if (testFinishing) return;
+                testFinishing = true;
+                clearTimer(); 
+                removeGlobalEnter();
+                const score = answers.filter(a => a.correct).length; 
+                const perc = Math.round((score / total) * 100);
+
+                // Сохраняем результат итогового теста в отдельную базу
+                const finalTestResult = {
+                    topicId: topicId,
+                    topicTitle: topic.title,
+                    timestamp: Date.now(),
+                    score: score,
+                    total: total,
+                    percentage: perc,
+                    answers: answers.map(a => ({
+                        question: a.question,
+                        correct: a.correct,
+                        userAnswer: a.userAnswer || null,
+                        chosenIdx: a.chosenIdx !== undefined ? a.chosenIdx : null
+                    }))
+                };
+                const finalTestRef = ref(db, `teachers/${currentStudent.teacherId}/finalTests/${currentStudent.uid}/${topicId}`);
+                await set(finalTestRef, finalTestResult);
+
+                // Сохраняем topicProgress (без изменения correctCount — итоговый тест не влияет на шкалы)
+                const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                const studentSnap = await get(studentRef);
+                let topicProgress = studentSnap.val().topicProgress || {};
+                if (!topicProgress[topicId]) topicProgress[topicId] = { level: 1, questions: {}, testHistory: [] };
+                const tp = topicProgress[topicId];
+
+                // Повышаем уровень
+                const newLevel = (tp.level || 1) + 1;
+                tp.level = newLevel; 
+                tp.levelUpAt = Date.now();
+                tp.finalTestPending = false; // Снимаем флаг ожидания итогового теста
+
+                // Сбрасываем шкалы для нового уровня
+                allQuestions.forEach(q => { 
+                    const k = safeKey(q.question); 
+                    if (tp.questions[k]) {
+                        const savedModifier = tp.questions[k].modifier || 0;
+                        tp.questions[k].firstCorrect = false;
+                        tp.questions[k].correctCount = 0;
+                        tp.questions[k].wrongCount = 0;
+                        tp.questions[k].modifier = savedModifier;
+                    }
+                });
+
+                // Записываем событие в auditLog
+                try {
+                    const topicSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`));
+                    const topicTitle = topicSnap.exists() ? topicSnap.val().title : topicId;
+                    const auditRef = push(ref(db, `teachers/${currentStudent.teacherId}/auditLog`));
+                    await set(auditRef, {
+                        timestamp: Date.now(),
+                        type: 'levelUp',
+                        description: `Ученик "${currentStudent.name}" повысил уровень по теме "${topicTitle}" до ${newLevel} (после итогового теста: ${score}/${total}, ${perc}%)`,
+                        studentUid: currentStudent.uid,
+                        studentName: currentStudent.name,
+                        topicId: topicId,
+                        topicTitle: topicTitle,
+                        details: { newLevel, oldLevel: tp.level - 1, finalTestScore: score, finalTestTotal: total, finalTestPercentage: perc }
+                    });
+                } catch (e) {
+                    console.error('Ошибка записи в auditLog:', e);
+                }
+
+                tp.testHistory.push({ timestamp: Date.now(), score, total, percentage: perc });
+                await update(studentRef, { topicProgress });
+
+                // Убираем пастельно-синий фон
+                document.body.classList.remove('final-test-mode');
+
+                testFinishing = false;
+
+                // Показываем результаты
+                const quotesSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/quotesSettings`)); 
+                const quotesSettings = quotesSnap.val() || {};
+                let quote, author, img, bgSize, bgPosX, bgPosY;
+                const def = { low: { quote: '«Не ошибается лишь тот, кто ничего не делает»', author: 'Теодор Рузвельт' }, mid: { quote: '«Самое прекрасное в обучении то, что никто не может его у вас отнять»', author: 'Би Би Кинг' }, high: { quote: '«Это всегда кажется невозможным, пока это не сделано»', author: 'Нельсон Мандела' }, perfect: { quote: '«Будущее принадлежит тем, кто верит в красоту своей мечты»', author: 'Элеонора Рузвельт' } };
+                if (perc < 50) { const s = quotesSettings.low || {}; quote = s.quote || def.low.quote; author = s.author || def.low.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgPosY || '50'; }
+                else if (perc < 70) { const s = quotesSettings.mid || {}; quote = s.quote || def.mid.quote; author = s.author || def.mid.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgSize || '50'; }
+                else if (perc < 100) { const s = quotesSettings.high || {}; quote = s.quote || def.high.quote; author = s.author || def.high.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgPosY || '50'; }
+                else { const s = quotesSettings.perfect || {}; quote = s.quote || def.perfect.quote; author = s.author || def.perfect.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgSize || '50'; bgPosY = s.bgSize || '50'; }
+                let imgHtml = img ? `<div class="back" style="background-image:url('${img}'); background-size:${bgSize}%; background-position:${bgPosX}% ${bgPosY}%;"></div>` : `<div class="back"><p>${author}</p></div>`;
+                let resultHtml = `<div style="text-align:center;"><h2>🎉 Итоговый тест завершён!</h2><div class="score-circle"><div class="front">${score}/${total}</div>${imgHtml}</div><p style="font-size:1.2rem;margin:1rem 0;">Правильных ответов: <strong>${perc}%</strong></p><p class="quote">${quote}<br>— ${author}</p><p style="color:var(--accent); font-weight:600;">Уровень повышен до ${newLevel}! 🎊</p></div><h4>📋 Подробные результаты:</h4>`;
+                answers.forEach((a, i) => { 
+                    const q = testQuestions[i]; 
+                    let d = ''; 
+                    if (q.type === 'card') d = `<p>Карточка ${a.correct ? '✓ просмотрена' : '✗ не просмотрена'}</p>`; 
+                    else if (q.type === 'open') { 
+                        const ua = a.userAnswer || ''; 
+                        const ca = a.correctAnswer || ''; 
+                        const punctuationWarning = a.punctuationWarning || false; 
+                        if (a.correct && !punctuationWarning) { 
+                            d = `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p>Правильный: <strong>${escapeHtml(ca)}</strong></p>`; 
+                        } else if (a.correct && punctuationWarning) { 
+                            d = `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p>Правильный: <strong>${escapeHtml(ca)}</strong></p><p style="color:#d4a017;">🔍 Не забывайте ставить знак препинания в конце предложения!</p>`; 
+                        } else {
+                            const maxLen = Math.max(ua.length, ca.length); 
+                            let userHtml = '', correctHtml = ''; 
+                            for (let i = 0; i < maxLen; i++) { 
+                                const uChar = ua[i] || ''; 
+                                const cChar = ca[i] || ''; 
+                                if (uChar === cChar) { 
+                                    userHtml += escapeHtml(uChar); 
+                                    correctHtml += escapeHtml(cChar); 
+                                } else { 
+                                    userHtml += `<span class="wrong-answer">${escapeHtml(uChar || ' ')}</span>`; 
+                                    correctHtml += `<span class="correct-answer">${escapeHtml(cChar || ' ')}</span>`; 
+                                } 
+                            } 
+                            d = `<p>Ваш ответ: ${userHtml || '—'}</p><p>Правильный: ${correctHtml || '—'}</p>`; 
+                        } 
+                    } else d = `<p>Правильный вариант: <strong>${escapeHtml(q.options[q.correctIdx])}</strong></p>`; 
+                    resultHtml += `<div class="test-question" style="border-color:${a.correct ? '#10b981' : '#ef4444'}"><p style="font-weight:600;">${i + 1}. ${escapeHtml(a.question)}</p>${d}${a.explanation ? `<div class="explanation">💡 ${escapeHtml(a.explanation)}` : ''}${a.explanationImage ? `<div style="margin-top:0.5rem;"><img src="${escapeHtml(a.explanationImage)}" style="max-width:200px; max-height:150px; border-radius:8px; border:1px solid var(--border);"></div>` : ''}${a.explanation ? `</div>` : ''}</div>`; 
+                });
+                backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button>${resultHtml}</div>`;
+                backdrop.querySelector('.modal-close').onclick = () => { backdrop.remove(); location.reload(); };
+            }
+            renderQuestion();
+        }
+
+        async function renderDashboard(appEl) {
+            const { teacherId, uid } = currentStudent;
+            const studentRef = ref(db, `teachers/${teacherId}/students/${uid}`);
+            const snap = await get(studentRef);
+            let student = snap.val();
+            if (!student || student.deleted) {
+                appEl.innerHTML = '<div class="empty-message">Доступ отозван.</div>';
+                localStorage.removeItem('student_session');
+                currentStudent = null;
+                setTimeout(() => render(), 3000);
+                return;
+            }
+            appEl.innerHTML = '<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;"><button class="btn outline" id="tabTopics">Мои темы</button><button class="btn outline" id="tabQuestions">Мои вопросы</button><button class="btn outline" id="tabOffline">Офлайн-версия</button></div><div id="tabContent"></div>';
+            let currentTab = 'topics';
+            const tabTopics = document.getElementById('tabTopics');
+            const tabQuestions = document.getElementById('tabQuestions');
+            const tabOffline = document.getElementById('tabOffline');
+            const tabContent = document.getElementById('tabContent');
+            // Подписываемся на изменения данных ученика — вопросы и прогресс обновляются мгновенно
+            onValue(studentRef, studentSnap => {
+                student = studentSnap.val() || {};
+                if (!tabContent) return;
+                if (currentTab === 'topics') renderTopicsTab(tabContent, student);
+                else if (currentTab === 'questions') renderQuestionsTab(tabContent, student);
+                else renderOfflineTab(tabContent);
+            });
+            tabTopics.onclick = () => { currentTab = 'topics'; renderTab(); };
+            tabQuestions.onclick = () => { currentTab = 'questions'; renderTab(); };
+            tabOffline.onclick = () => { currentTab = 'offline'; renderTab(); };
+            function renderTab() {
+                if (currentTab === 'topics') {
+                    renderTopicsTab(tabContent, student);
+                } else if (currentTab === 'questions') {
+                    renderQuestionsTab(tabContent, student);
+                } else {
+                    renderOfflineTab(tabContent);
+                }
+            }
+            function renderOfflineTab(container) {
+                if (!container) container = document.getElementById('tabContent');
+                if (!container) return;
+                container.innerHTML = '<div style="max-width:500px; margin:2rem auto; display:flex; flex-direction:column; gap:1.5rem;">' +
+                    '<h2 style="text-align:center;">📦 Офлайн-режим</h2>' +
+                    '<p style="text-align:center; color:var(--text-secondary); font-size:0.95rem;">Скачайте офлайн-пакет для работы без интернета, затем загрузите результаты.</p>' +
+                    '<button class="btn" id="downloadOfflineBtn" style="padding:1rem 2rem; font-size:1.1rem; width:100%;">📦 Скачать офлайн-пакет</button>' +
+                    '<button class="btn outline" id="uploadOfflineBtn" style="padding:1rem 2rem; font-size:1.1rem; width:100%;">📤 Загрузить офлайн-результаты</button>' +
+                    '<hr style="border-color:var(--border); margin:0.5rem 0;">' +
+                    '<h3 style="text-align:center;">🛠 Настройки</h3>' +
+                    '<button class="btn outline" id="cleanupDupesBtn" style="padding:1rem 2rem; font-size:1.1rem; width:100%; border-color:#eab308; color:#eab308;">🧹 Очистить дубликаты ответов</button>' +
+                    '<div id="offlineImportHistory" style="margin-top:0.5rem;"></div>' +
+                    '</div>';
+                document.getElementById('downloadOfflineBtn').onclick = downloadOfflinePackage;
+                document.getElementById('uploadOfflineBtn').onclick = uploadOfflineResults;
+                document.getElementById('cleanupDupesBtn').onclick = cleanupDuplicateAnswers;
+                // Показываем историю офлайн-импортов
+                renderOfflineImportHistory();
+            }
+            
+            // Функция очистки дубликатов ответов
+            async function cleanupDuplicateAnswers() {
+                if (!confirm('🧹 Очистить дубликаты ответов? Это проверит все темы и удалит повторяющиеся записи (с одинаковым timestamp в пределах 8 секунд).')) return;
+                
+                try {
+                    const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                    const snap = await get(studentRef);
+                    const studentData = snap.val() || {};
+                    const topicProgress = studentData.topicProgress || {};
+                    const DUPES_WINDOW_MS = 8000;
+                    let totalRemoved = 0;
+                    let changedTopics = 0;
+                    
+                    for (const [tId, tp] of Object.entries(topicProgress)) {
+                        const questions = tp.questions || {};
+                        let topicChanged = false;
+                        
+                        for (const [qKey, qData] of Object.entries(questions)) {
+                            const history = qData.history || [];
+                            if (history.length < 2) continue;
+                            
+                            // Сортируем по timestamp
+                            const sorted = [...history].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                            const toRemove = new Set();
+                            
+                            // Находим дубликаты (записи в пределах 8 секунд друг от друга)
+                            for (let i = 1; i < sorted.length; i++) {
+                                const prev = sorted[i - 1];
+                                const curr = sorted[i];
+                                const diff = (curr.timestamp || 0) - (prev.timestamp || 0);
+                                if (diff >= 0 && diff <= DUPES_WINDOW_MS) {
+                                    toRemove.add(curr);
+                                }
+                            }
+                            
+                            if (toRemove.size > 0) {
+                                // Фильтруем, удаляя дубликаты
+                                const filtered = sorted.filter(rec => {
+                                    for (const dup of toRemove) {
+                                        if (dup.timestamp === rec.timestamp && 
+                                            dup.userAnswer === rec.userAnswer && 
+                                            dup.correct === rec.correct &&
+                                            dup.chosenIdx === rec.chosenIdx) {
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                });
+                                
+                                // Пересчитываем correctCount
+                                const maxNeeded = getMaxNeeded(qData, tp.levelUpAt);
+                                const levelUpAt = tp.levelUpAt || 0;
+                                let recalcCorrectCount = 0;
+                                for (const hRec of filtered) {
+                                    if (levelUpAt > 0 && hRec.timestamp < levelUpAt) continue;
+                                    if (hRec.correct) {
+                                        recalcCorrectCount = Math.min(maxNeeded, recalcCorrectCount + 1);
+                                    } else {
+                                        recalcCorrectCount = Math.max(0, recalcCorrectCount - 1);
+                                    }
+                                }
+                                
+                                totalRemoved += toRemove.size;
+                                qData.history = filtered;
+                                qData.correctCount = recalcCorrectCount;
+                                topicChanged = true;
+                            }
+                        }
+                        
+                        if (topicChanged) changedTopics++;
+                    }
+                    
+                    if (totalRemoved > 0) {
+                        await update(studentRef, { topicProgress: topicProgress });
+                        showNotification('✅ Удалено ' + totalRemoved + ' дубликатов в ' + changedTopics + ' темах!', 'success', 5000);
+                    } else {
+                        showNotification('✅ Дубликатов не найдено!', 'success', 3000);
+                    }
+                } catch (err) {
+                    console.error('Ошибка при очистке дубликатов:', err);
+                    showNotification('❌ Ошибка: ' + err.message, 'error', 5000);
+                }
+            }
+            
+            // Функция отображения истории офлайн-импортов
+            async function renderOfflineImportHistory() {
+                const container = document.getElementById('offlineImportHistory');
+                if (!container) return;
+                
+                try {
+                    const importsRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}/offlineImports`);
+                    const snap = await get(importsRef);
+                    const imports = snap.val() || {};
+                    const entries = Object.values(imports);
+                    
+                    if (entries.length === 0) {
+                        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-size:0.85rem;">История офлайн-загрузок пуста.</p>';
+                        return;
+                    }
+                    
+                    // Сортируем по убыванию timestamp
+                    entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    
+                    let html = '<h4 style="text-align:center; margin-top:1rem;">📜 История офлайн-загрузок</h4>';
+                    html += '<div style="max-height:200px; overflow-y:auto; font-size:0.85rem;">';
+                    entries.forEach(function(entry) {
+                        const date = new Date(entry.timestamp).toLocaleString('ru-RU');
+                        html += '<div style="padding:0.4rem 0; border-bottom:1px solid var(--border);">';
+                        html += '<span>📤 ' + date + '</span>';
+                        html += '<span style="float:right; color:var(--text-secondary);">' + (entry.resultsCount || '?') + ' рез.</span>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                } catch (err) {
+                    console.error('Ошибка загрузки истории импортов:', err);
+                }
+            }
+
+            function renderTopicsTab(container, student) {
+                const topicsRef = ref(db, `teachers/${teacherId}/topics`);
+                onValue(topicsRef, topicsSnap => {
+                    const allTopics = topicsSnap.val() ? Object.values(topicsSnap.val()) : [];
+                    const assigned = allTopics.filter(t => t.assignedTo && t.assignedTo.includes(uid));
+                    if (assigned.length === 0) {
+                        container.innerHTML = '<div class="empty-message">Нет назначенных тем.</div>';
+                        return;
+                    }
+                    const progress = student.topicProgress || {};
+                    let html = '<h2>📚 Мои темы</h2>';
+                    assigned.forEach(topic => {
+                        const tp = progress[topic.id];
+                        const level = tp ? tp.level || 1 : 0;
+                        const badgeClass = 'level-' + level;
+                        const totalQ = topic.test ? topic.test.length : 0;
+                        const mastered = tp ? Object.values(tp.questions||{}).filter(q => {
+                            const maxNeeded = getMaxNeeded(q, tp.levelUpAt);
+                            return q.correctCount >= maxNeeded;
+                        }).length : 0;
+                        const pct = totalQ ? Math.round((mastered/totalQ)*100) : 0;
+                        
+                        // Проверяем, есть ли флаг ожидания итогового теста
+                        const finalTestPending = tp && tp.finalTestPending === true;
+                        
+                        html += `<div class="topic-card"><div style="display:flex; align-items:center; gap:0.5rem;"><span class="level-badge ${badgeClass}"></span><h3 style="flex:1;">${escapeHtml(topic.title)}</h3></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><p style="font-size:0.85rem;">Освоено вопросов: ${mastered}/${totalQ}</p><div class="topic-actions">`;
+                        
+                        // Если ожидается итоговый тест — показываем баннер с кнопкой
+                        if (finalTestPending && mastered >= totalQ) {
+                            html += `<div class="final-test-banner" style="width:100%; margin-top:0.5rem;">
+                                <h3>🎯 Все задания освоены!</h3>
+                                <p>Пройдите итоговый тест, чтобы перейти на новый уровень (${level} → ${level + 1}).<br>
+                                <strong>${topic.test.length} заданий</strong> из темы.</p>
+                                <p style="color:#c0392b; font-weight:600; margin:0.5rem 0; font-size:0.9rem;">⚠️ Во время итогового теста нельзя пользоваться теорией, конспектами или другими пометками!</p>
+                                <button class="btn final-test-btn final-test-start" data-topicid="${topic.id}">🏁 Пройти итоговый тест</button>
+                            </div>`;
+                        } else {
+                            html += `<button class="btn small view-theory" data-topicid="${topic.id}">📖 Теория</button><button class="btn small start-test" data-topicid="${topic.id}">📝 Тест</button><button class="btn small outline view-stats" data-topicid="${topic.id}">📊 Статистика</button>`;
+                        }
+                        
+                        html += `</div></div>`;
+                    });
+                    container.innerHTML = html;
+                    container.querySelectorAll('.view-theory').forEach(b => b.onclick = () => showTheory(b.dataset.topicid));
+                    container.querySelectorAll('.start-test').forEach(b => b.onclick = () => startTest(b.dataset.topicid));
+                    container.querySelectorAll('.view-stats').forEach(b => b.onclick = () => showTopicStats(b.dataset.topicid));
+                    container.querySelectorAll('.final-test-start').forEach(b => b.onclick = () => startFinalTest(b.dataset.topicid));
+                }, { onlyOnce: false });
+            }
+            function renderQuestionsTab(container, student) {
+                // Exclude view‑only entries (type === 'view') from the list
+                const allQuestions = (student.questions || []).filter(q => q.type !== 'view');
+                if (allQuestions.length === 0) {
+                    container.innerHTML = '<div class="empty-message">Нет отправленных вопросов.</div>';
+                    return;
+                }
+                let html = '<h2>❓ Мои вопросы</h2>';
+                 allQuestions.reverse().forEach(q => {
+                     const date = new Date(q.timestamp).toLocaleString('ru-RU');
+                     const qId = q.timestamp + '_' + (q.topicId || '');
+                     // Check if teacher has answered this question
+                     const hasAnswer = q.answered === true; // Check the 'answered' field set by teacher
+                     html += `<div class="topic-card question-card" data-qid="${qId}">
+                                 <button class="delete-question-btn" data-topicid="${q.topicId}" data-taskquestion='${JSON.stringify(q.taskQuestion)}' title="Удалить вопрос">×</button>
+                                 <div class="question-content">
+                                     <p><strong>${escapeHtml(q.questionText)}</strong></p>
+                                     <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 1rem;">Отправлено: ${date}</p>
+                                 </div>
+                                 <div class="question-actions">
+                                     <button class="btn small view-task" data-topicid="${q.topicId}" data-taskquestion='${JSON.stringify(q.taskQuestion)}'>Просмотреть задание</button>
+                                     <button class="waiting-answer-btn ${hasAnswer ? 'received' : 'waiting'}" data-has-answer="${hasAnswer}">
+                                         ${hasAnswer ? 'Ответ получен ✓' : 'Ждём ответ'}
+                                     </button>
+                                 </div>
+                             </div>`;
+                 });
+                container.innerHTML = html;
+                // Attach click listeners to the newly created buttons
+                container.querySelectorAll('.view-task').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const topicId = btn.dataset.topicid;
+                        let taskQ;
+                        try { taskQ = JSON.parse(btn.dataset.taskquestion); } catch { taskQ = btn.dataset.taskquestion; }
+                        showTask(topicId, taskQ);
+                    });
+                });
+                // Delete handlers for the new delete buttons
+                container.querySelectorAll('.delete-question-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Удалить этот вопрос?')) return;
+                        const topicId = btn.dataset.topicid;
+                        const taskQRaw = btn.dataset.taskquestion;
+                        let taskQ;
+                        try { taskQ = JSON.parse(taskQRaw); } catch { taskQ = taskQRaw; }
+                        const tqStr = typeof taskQ === 'object' ? JSON.stringify(taskQ) : String(taskQ);
+                        const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                        const snap = await get(studentRef);
+                        const student = snap.val() || {};
+                        const filtered = (student.questions || []).filter(q => {
+                            const qTask = q.taskQuestion;
+                            const qStr = typeof qTask === 'object' ? JSON.stringify(qTask) : String(qTask);
+                            return !(q.topicId === topicId && qStr === tqStr && q.type !== 'view');
+                        });
+                        await update(studentRef, { questions: filtered });
+                        renderDashboard(document.getElementById('app'));
+                    });
+                });
+                 // Add animation effect for received answers
+                 container.querySelectorAll('.waiting-answer-btn.received').forEach(btn => {
+                     const qId = btn.closest('.question-card').dataset.qid;
+                     const question = allQuestions.find(q => q.timestamp + '_' + (q.topicId || '') === qId);
+                     const wasOpened = question?.answerOpened || false;
+
+                     // Add smooth pulsing animation only if the answer hasn't been opened before
+                     if (!wasOpened) {
+                         btn.style.animation = 'pulse 2s infinite';
+                     } else {
+                         btn.style.animation = 'none';
+                     }
+
+                     // Add click handler to show teacher's reply (только один раз!)
+                     btn.addEventListener('click', async () => {
+                         if (question && question.teacherReply) {
+                             showTeacherReply(question.teacherReply, question.repliedAt);
+                             // Save the state that the answer has been opened in the database
+                             if (!question.answerOpened) {
+                                 const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                                 const studentSnap = await get(studentRef);
+                                 const student = studentSnap.val() || {};
+                                 const updatedQuestions = (student.questions || []).map(q => {
+                                     const qTopicId = q.topicId || '';
+                                     const questionTopicId = question.topicId || '';
+                                     if (q.timestamp === question.timestamp && qTopicId === questionTopicId) {
+                                         return { ...q, answerOpened: true };
+                                     }
+                                     return q;
+                                 });
+                                 await update(studentRef, { questions: updatedQuestions });
+                                 // Remove the animation
+                                 btn.style.animation = 'none';
+                             }
+                         }
+                     });
+                 });
+            }
+            renderTab();
+        }
+
+        function showModal(html) { 
+            const backdrop = document.createElement('div'); 
+            backdrop.className = 'modal-backdrop'; 
+            backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button>${html}</div>`; 
+            document.body.appendChild(backdrop); 
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove(); 
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); }); 
+            return backdrop; 
+        }
+
+        async function showTheory(topicId) { 
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`)); 
+            if (!snap.exists()) return; 
+            const topic = snap.val(); 
+            showModal(`<h3>${escapeHtml(topic.title)}</h3><div style="margin-top:1rem;">${topic.theory}</div>`); 
+        }
+
+        async function showTopicStats(topicId) {
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`)); 
+            if (!snap.exists()) return;
+            const topic = snap.val();
+            const studentSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`));
+            const student = studentSnap.val(); 
+            const progress = student.topicProgress?.[topicId] || null;
+            const questionProgress = progress?.questions || {};
+            // Функция для получения модифицированного веса вопроса
+            function getQuestionWeight(qp) {
+                if (!qp) return 1;
+                const baseWeight = 1;
+                const modifier = qp.modifier || 0;
+                return baseWeight + modifier;
+            }
+             
+            const testHistory = progress?.testHistory || [];
+            let html = `<h3>📊 ${escapeHtml(topic.title)} – статистика</h3>`;
+            if (testHistory.length) { 
+                html += '<h4>📝 История тестов</h4><div style="max-height:200px; overflow-y:auto; margin-bottom:1rem;">'; 
+                testHistory.slice().reverse().forEach(test => { 
+                    const date = new Date(test.timestamp).toLocaleString('ru-RU'); 
+                    html += `<p style="margin:0.3rem 0; font-size:0.9rem;">📅 ${date}: ${test.score}/${test.total} (${test.percentage}%)</p>`; 
+                }); 
+                html += '</div>'; 
+            }
+            html += '<h4>📋 Прогресс по вопросам</h4>';
+            (topic.test || []).forEach(q => { 
+                const key = safeKey(q.question); 
+                const qp = questionProgress[key]; 
+                const cnt = qp?.correctCount ?? 0; 
+                const maxNeeded = getMaxNeeded(qp, progress?.levelUpAt);
+                    const displayMax = maxNeeded;
+                    let pct, fillClass, textColor;
+                    if (cnt < 0) {
+                        // Отрицательный correctCount — жёлтая шкала, длина от magnitude
+                        const absCnt = Math.abs(cnt);
+                        pct = Math.min(100, (absCnt / displayMax) * 100);
+                        fillClass = 'deficit-progress-fill';
+                        textColor = '#eab308';
+                    } else {
+                        pct = Math.min(100, (cnt / displayMax) * 100);
+                        fillClass = '';
+                        textColor = '';
+                    }
+                    html += `<div style="display:flex; align-items:center; gap:0.5rem; margin:0.4rem 0;"><span class="question-link" data-topicid="${topicId}" data-qtext="${escapeHtml(q.question)}" style="flex:1; font-size:0.9rem;">${escapeHtml(q.question)}</span><div class="progress-bar" style="flex:1;"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div><span style="font-size:0.8rem; ${textColor ? 'color:' + textColor + ';' : ''}">${cnt}/${displayMax}</span></div>`; 
+
+            });
+            const backdrop = showModal(html);
+            backdrop.querySelectorAll('.question-link').forEach(link => { 
+                link.addEventListener('click', async () => { 
+                    const topicId = link.dataset.topicid; 
+                    const qtext = link.dataset.qtext; 
+                    const tSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`)); 
+                    const topicData = tSnap.val(); 
+                    const question = (topicData.test || []).find(q => q.question === qtext); 
+                    if (!question) return; 
+                    const key = safeKey(question.question); 
+                    const history = questionProgress[key]?.history || []; 
+                    showQuestionHistoryModal(question, history); 
+                }); 
+            });
+        }
+
+        function showQuestionHistoryModal(q, history) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-backdrop';
+            const imgHtml = q.image ? `<div class="resizable-image-container" style="margin-bottom:0.8rem;${q.imageWidth ? `width:${q.imageWidth}px;height:${q.imageHeight}px;` : ''}"><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+            const explImgHtml = q.explanationImage ? `<div class="resizable-image-container" style="margin:0.5rem 0;${q.explanationImageWidth ? `width:${q.explanationImageWidth}px;height:${q.explanationImageHeight}px;` : ''}"><img src="${escapeHtml(q.explanationImage)}" class="resizable-image" alt="Изображение к объяснению"><div class="resize-handle"></div></div>` : '';
+            let html = `<div class="modal-content"><button class="modal-close">&times;</button><h3>📋 Задание</h3>${imgHtml}<p><strong>${escapeHtml(q.question)}</strong></p><p>Тип: ${q.type === 'card' ? 'Карточка' : q.type === 'open' ? 'Открытый ответ' : 'Выбор варианта'}</p>${q.explanation ? `<p><em>Объяснение: ${escapeHtml(q.explanation)}</em></p>` : ''}${explImgHtml}<h4 style="margin-top:1rem;">История ответов</h4>`;
+            if (!history.length) html += '<p>Нет записей</p>';
+            else {
+                html += '<table><tr><th>Дата</th><th>Результат</th><th>Ответ</th></tr>';
+                history.slice().reverse().forEach(rec => {
+                    html += `<tr><td>${new Date(rec.timestamp).toLocaleString('ru-RU')}</td><td>${rec.correct ? '✅ Верно' : '❌ Ошибка'}</td><td>${rec.userAnswer || rec.options?.[rec.chosenIdx] || '—'}</td></tr>`;
+                });
+                html += '</table>';
+            }
+            html += '</div>';
+            overlay.innerHTML = html;
+            document.body.appendChild(overlay);
+            overlay.querySelector('.modal-close').onclick = () => overlay.remove();
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        function showTeacherReply(replyText, repliedAt) {
+            const date = repliedAt ? new Date(repliedAt).toLocaleString('ru-RU') : 'Неизвестно';
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content">
+                    <button class="modal-close">&times;</button>
+                    <h3>📩 Ответ учителя</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                        Отвечено: ${date}
+                    </p>
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; white-space: pre-wrap;">
+                        ${escapeHtml(replyText)}
+                    </div>
+                    <button class="btn" style="width: 100%; margin-top: 1rem;">Закрыть</button>
+                </div>
+            `;
+            document.body.appendChild(backdrop);
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+            const closeBtn = backdrop.querySelector('.btn');
+            if (closeBtn) {
+                closeBtn.onclick = () => backdrop.remove();
+            }
+        }
+
+        async function startTest(topicId) {
+            const snap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`)); 
+            if (!snap.exists()) return;
+            const topic = snap.val(); 
+            const allQuestions = topic.test || []; 
+            if (!allQuestions.length) return alert('В теме нет теста.');
+            const studentSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`));
+            const student = studentSnap.val(); 
+            const progress = student.topicProgress?.[topicId] || null;
+            const questionProgress = progress?.questions || {};
+            let weightedQuestions = [];
+            const baseWeight = 1;
+            allQuestions.forEach(q => {
+                const key = safeKey(q.question);
+                let stats = questionProgress[key];
+                    if (!stats) {
+                        stats = { correctCount: 0, wrongCount: 0, modifier: 0, firstCorrect: false };
+                    }
+                    const maxNeeded = getMaxNeeded(stats, progress?.levelUpAt);
+                if (stats.correctCount < maxNeeded) {
+                    let weight = baseWeight + (stats.modifier || 0) / 100;
+                    weight = Math.min(weight, 1.6);
+                    const repeatCount = Math.floor(weight * 10);
+                    for (let i = 0; i < repeatCount; i++) {
+                        weightedQuestions.push(q);
+                    }
+                }
+            });
+            
+            if (weightedQuestions.length === 0) {
+                return alert('Все вопросы уже освоены!');
+            }
+            
+            let selected = [...weightedQuestions];
+            if (topic.randomOrder) selected = selected.sort(() => Math.random() - 0.5);
+            const uniqueQuestions = [];
+            const seen = new Set();
+            for (const q of selected) {
+                const key = safeKey(q.question);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueQuestions.push(q);
+                }
+            }
+            selected = uniqueQuestions.slice(0, topic.questionsPerTest || 10);
+            const test = selected; 
+            const total = test.length;
+            let current = 0; 
+            const answers = []; 
+            let timerInterval, timeLeft, answered;
+            const backdrop = document.createElement('div'); 
+            backdrop.className = 'modal-backdrop'; 
+            document.body.appendChild(backdrop);
+            let lastActionTime = 0;
+            let answerSubmittedTime = 0;
+            function clearTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+            function removeGlobalEnter() { document.removeEventListener('keypress', onGlobalEnter); }
+            function onGlobalEnter(e) { 
+                if (e.key === 'Enter' && Date.now() - lastActionTime > 500 && Date.now() - answerSubmittedTime > 600) { 
+                    e.preventDefault(); 
+                    const nextBtn = document.getElementById('nextQuestionBtn'); 
+                    if (nextBtn) nextBtn.click(); 
+                } 
+            }
+
+            function showResult(q, isCorrect, details, topicId) {
+                clearTimer();
+                removeGlobalEnter();
+                const content = backdrop.querySelector('#questionContent'), td = backdrop.querySelector('#timerDisplay'), pd = backdrop.querySelector('#questionProgress');
+                if (td) td.style.display = 'none';
+                if (pd) pd.style.display = 'none';
+                const imgHtml = q.image ? `<div class="resizable-image-container" style="margin-bottom:0.8rem;${q.imageWidth ? `width:${q.imageWidth}px;height:${q.imageHeight}px;` : ''}"><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+                let html = `<div class="question-area" id="questionArea">${imgHtml}<p style="font-size:1.1rem; margin-bottom:1rem;"><strong>${escapeHtml(q.question)}</strong></p>`;
+                if (q.type === 'choice') {
+                    html += '<div class="option">';
+                    q.options.forEach((opt, i) => {
+                        let cls = '';
+                        if (i === details.correctIdx) cls = 'correct-answer';
+                        if (i === details.chosenIdx && !isCorrect) cls = 'wrong-answer';
+                        html += `<div class="${cls}" style="margin:0.3rem 0; padding:0.3rem; border-radius:4px;">${escapeHtml(opt)} ${i === details.correctIdx ? '✓' : ''} ${i === details.chosenIdx && !isCorrect ? '✗' : ''}</div>`;
+                    });
+                    html += '</div>';
+                } else if (q.type === 'open') {
+                    const ua = details.userAnswer || '';
+                    const ca = details.correctAnswer || '';
+                    const punctuationWarning = details.punctuationWarning || false;
+                    if (isCorrect && !punctuationWarning) {
+                        html += `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p>`;
+                    } else if (isCorrect && punctuationWarning) {
+                        html += `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p style="color:#d4a017;">🔍 Забыли знак препинания?</p>`;
+                    } else {
+                        const maxLen = Math.max(ua.length, ca.length);
+                        let userHtml = '', correctHtml = '';
+                        for (let i = 0; i < maxLen; i++) {
+                            const uChar = ua[i] || '';
+                            const cChar = ca[i] || '';
+                            if (uChar === cChar) {
+                                userHtml += escapeHtml(uChar);
+                                correctHtml += escapeHtml(cChar);
+                            } else {
+                                userHtml += `<span class="wrong-answer">${escapeHtml(uChar || ' ')}</span>`;
+                                correctHtml += `<span class="correct-answer">${escapeHtml(cChar || ' ')}</span>`;
+                            }
+                        }
+                        html += `<p>Ваш ответ: ${userHtml || '—'}</p><p>Правильный: ${correctHtml || '—'}</p>`;
+                    }
+                } else if (q.type === 'card') {
+                    html += `<p>Карточка ${isCorrect ? 'просмотрена' : 'не просмотрена'}</p>`;
+                }
+                if (q.explanation) {
+                    html += `<div class="explanation">💡 ${escapeHtml(q.explanation)}`;
+                    if (q.explanationImage) {
+                        html += `<div class="resizable-image-container" style="margin-top:0.5rem;${q.explanationImageWidth ? `width:${q.explanationImageWidth}px;height:${q.explanationImageHeight}px;` : ''}"><img src="${escapeHtml(q.explanationImage)}" class="resizable-image" alt="Изображение к объяснению"><div class="resize-handle"></div></div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += '</div>';
+                const isLast = current === total - 1;
+                html += `<div class="btn-row"><button class="btn" id="nextQuestionBtn">${isLast ? 'Завершить тест 🏁' : 'Далее ➡️'}</button><div class="help-btn-wrap" id="helpWrap"><span class="help-text">Задать вопрос или сообщить об ошибке</span><button class="help-btn" id="helpBtn" data-topicid="${topicId}"><span class="help-icon">?</span></button></div></div>`;
+                content.innerHTML = html;
+                const nextBtn = document.getElementById('nextQuestionBtn');
+                if (isLast) nextBtn.onclick = () => { removeGlobalEnter(); finishTest(); };
+                else nextBtn.onclick = () => { removeGlobalEnter(); current++; renderQuestion(); };
+                const helpWrap = document.getElementById('helpWrap');
+                const questionArea = document.getElementById('questionArea');
+                if (helpWrap && questionArea) {
+                    helpWrap.addEventListener('mouseenter', () => questionArea.classList.add('blurred'));
+                    helpWrap.addEventListener('mouseleave', () => questionArea.classList.remove('blurred'));
+                }
+                const helpBtn = document.getElementById('helpBtn');
+                helpBtn.onclick = () => showHelpModal(q, helpBtn.dataset.topicid);
+                lastActionTime = Date.now();
+                document.addEventListener('keypress', onGlobalEnter);
+            }
+
+            function autoSubmit(q) {
+                if (answered) return;
+                answered = true;
+                clearTimer();
+                if (q.type === 'card') {
+                    answers.push({ question: q.question, correct: false, timeLeft: 0 });
+                    showResult(q, false, null, topicId);
+                } else if (q.type === 'open') {
+                    const ua = backdrop.querySelector('#openAnswer')?.value?.trim() || '';
+                    let corr = ua.toLowerCase() === (q.correctAnswer || '').toLowerCase();
+                    let punctuationWarning = false;
+                    if (!corr && ua.length > 0 && q.correctAnswer && q.correctAnswer.length > 0) {
+                        const lastChar = q.correctAnswer.slice(-1);
+                        if ('.,!?;:'.includes(lastChar)) {
+                            const uaWithoutLast = ua.slice(-1) === lastChar ? ua.slice(0, -1) : ua;
+                            const caWithoutLast = q.correctAnswer.slice(0, -1);
+                            if (uaWithoutLast.toLowerCase() === caWithoutLast.toLowerCase()) {
+                                corr = true;
+                                punctuationWarning = true;
+                            }
+                        }
+                    }
+                    answers.push({ type: 'open', question: q.question, correct: corr, correctAnswer: q.correctAnswer, explanation: q.explanation, timeLeft: 0, userAnswer: ua, punctuationWarning });
+                    showResult(q, corr, { userAnswer: ua, correctAnswer: q.correctAnswer, explanation: q.explanation, punctuationWarning }, topicId);
+                } else {
+                    const sel = backdrop.querySelector('input[name="choice"]:checked');
+                    const idx = sel ? parseInt(sel.value) : -1;
+                    answers.push({ type: 'choice', question: q.question, correct: false, correctIdx: q.correct, options: q.options, explanation: q.explanation, timeLeft: 0, chosenIdx: idx });
+                    showResult(q, false, { chosenIdx: idx, correctIdx: q.correct, options: q.options, explanation: q.explanation }, topicId);
+                }
+            }
+
+            function renderQuestion() {
+                clearTimer(); 
+                removeGlobalEnter();
+                if (current >= total) { finishTest(); return; }
+                const q = test[current]; 
+                timeLeft = q.timeLimit || topic.timeLimit || 30; 
+                answered = false;
+                backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button><div class="question-progress">Задание ${current + 1} из ${total}</div><div class="timer" id="timerDisplay">⏱ ${timeLeft} сек</div><div id="questionContent"></div></div>`;
+                backdrop.querySelector('.modal-close').onclick = () => { clearTimer(); backdrop.remove(); };
+                const content = backdrop.querySelector('#questionContent');
+                const imgHtml = q.image ? `<div class="resizable-image-container"${q.imageWidth ? ` style="width:${q.imageWidth}px;height:${q.imageHeight}px;"` : ''}><img src="${escapeHtml(q.image)}" class="resizable-image" alt="Изображение к вопросу"><div class="resize-handle"></div></div>` : '';
+                if (q.type === 'card') content.innerHTML = `<div class="card-flip"><div class="card-inner"><div class="card-front">${escapeHtml(q.question)}</div><div class="card-back">${escapeHtml(q.answer)}</div></div></div><div style="display:flex; gap:0.5rem; margin-top:1rem;"><button class="btn" id="cardFlipBtn">Перевернуть</button><button class="btn outline" id="cardDoneBtn">Я посмотрел</button></div>`;
+                else if (q.type === 'open') content.innerHTML = `${imgHtml}<p style="margin-bottom:1.5rem;"><strong>${escapeHtml(q.question)}</strong></p><textarea id="openAnswer" placeholder="Ваш ответ" spellcheck="false" rows="1" style="width:100%; padding:0.8rem; border-radius:8px; border:2px solid var(--border); font-size:1rem; resize: none; overflow-y: hidden; min-height: 48px;"></textarea><button class="btn" id="submitOpenBtn" style="margin-top:1.5rem;">Ответить</button>`;
+                else content.innerHTML = `${imgHtml}<p style="margin-bottom:1.5rem;"><strong>${escapeHtml(q.question)}</strong></p><div class="option">${q.options.map((o, i) => `<label><input type="radio" name="choice" value="${i}"> ${escapeHtml(o)}</label>`).join('')}</div><button class="btn" id="submitChoiceBtn" style="margin-top:1.5rem;">Ответить</button>`;
+                timerInterval = setInterval(() => { 
+                    timeLeft--; 
+                    const td = backdrop.querySelector('#timerDisplay'); 
+                    if (td) td.textContent = `⏱ ${timeLeft} сек`; 
+                    if (timeLeft <= 0) { 
+                        clearTimer(); 
+                        if (!answered) autoSubmit(q); 
+                    } 
+                }, 1000);
+                if (q.type === 'card') { 
+                    backdrop.querySelector('#cardFlipBtn').onclick = () => backdrop.querySelector('.card-flip').classList.toggle('flipped'); 
+                    backdrop.querySelector('#cardDoneBtn').onclick = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        answerSubmittedTime = Date.now(); 
+                        answers.push({ type: 'card', question: q.question, correct: true, timeLeft }); 
+                        showResult(q, true, null); 
+                    }; 
+                } else if (q.type === 'open') {
+                    const inp = backdrop.querySelector('#openAnswer'); 
+                    const submitBtn = backdrop.querySelector('#submitOpenBtn');
+                    const onOpenSubmit = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        removeGlobalEnter(); 
+                        answerSubmittedTime = Date.now(); 
+                        const ua = inp.value.trim(); 
+                        const ca = (q.correctAnswer || '').trim(); 
+                        let corr = ua === ca; 
+                        let punctuationWarning = false; 
+                        if (!corr) { 
+                            const punctMarks = ['.', ',', '!', '?', ';', ':']; 
+                            for (const mark of punctMarks) { 
+                                if (ua + mark === ca) { 
+                                    corr = true; 
+                                    punctuationWarning = true; 
+                                    break; 
+                                } 
+                                if (ua === ca + mark) { 
+                                    corr = true; 
+                                    punctuationWarning = true; 
+                                    break; 
+                                } 
+                            } 
+                        } 
+                        answers.push({ type: 'open', question: q.question, correct: corr, correctAnswer: q.correctAnswer, explanation: q.explanation, timeLeft, userAnswer: ua, punctuationWarning });
+                        showResult(q, corr, { userAnswer: ua, correctAnswer: q.correctAnswer, punctuationWarning }, topicId);
+                    };
+                    submitBtn.onclick = onOpenSubmit; 
+                    inp.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); onOpenSubmit(); } }); 
+                    inp.focus();
+                } else { 
+                    const submitBtn = backdrop.querySelector('#submitChoiceBtn'); 
+                    const onChoiceSubmit = () => { 
+                        if (answered) return; 
+                        answered = true; 
+                        clearTimer(); 
+                        removeGlobalEnter(); 
+                        answerSubmittedTime = Date.now(); 
+                        const sel = backdrop.querySelector('input[name="choice"]:checked'); 
+                        const idx = sel ? parseInt(sel.value) : -1; 
+                        const corr = idx === q.correct; 
+                        answers.push({ type: 'choice', question: q.question, correct: corr, correctIdx: q.correct, options: q.options, explanation: q.explanation, timeLeft, chosenIdx: idx }); 
+                        showResult(q, corr, { chosenIdx: idx, correctIdx: q.correct }); 
+                    }; 
+                    submitBtn.onclick = onChoiceSubmit; 
+                }
+            }
+
+            let testFinishing = false;
+            const processedAnswerHashes = new Set();
+            async function finishTest() {
+                if (testFinishing) return;
+                testFinishing = true;
+                clearTimer(); 
+                removeGlobalEnter();
+                const score = answers.filter(a => a.correct).length; 
+                const perc = Math.round((score / total) * 100);
+                const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                const studentSnap = await get(studentRef);
+                let topicProgress = studentSnap.val().topicProgress || {};
+                if (!topicProgress[topicId]) topicProgress[topicId] = { level: 1, questions: {}, testHistory: [] };
+                const tp = topicProgress[topicId];
+
+                // --- НОВАЯ ЛОГИКА: сначала проверяем, все ли вопросы освоены ---
+                // Сохраняем answers в историю ДО проверки allMastered
+                answers.forEach(a => { 
+                    const key = safeKey(a.question); 
+                    const answerHash = key + '_' + a.correct + '_' + (a.userAnswer || '') + '_' + (a.chosenIdx ?? '');
+                    if (processedAnswerHashes.has(answerHash)) return;
+                    processedAnswerHashes.add(answerHash);
+                    
+                    if (!tp.questions[key]) { 
+                        tp.questions[key] = { correctCount: 0, wrongCount: 0, modifier: 0, firstCorrect: false, history: [] }; 
+                    } 
+                    const qp = tp.questions[key]; 
+                    const wasFirstTime = qp.correctCount === 0 && qp.wrongCount === 0;
+                    
+                    if (a.correct) { 
+                        const maxNeeded = getMaxNeeded(qp, tp.levelUpAt);
+                        qp.correctCount = Math.min(maxNeeded, qp.correctCount + 1);
+                        if (wasFirstTime) {
+                            qp.firstCorrect = true;
+                        }
+                        if (qp.modifier > 0) {
+                            qp.modifier = Math.max(0, qp.modifier - 20);
+                        }
+                    } else { 
+                        qp.correctCount = Math.max(0, qp.correctCount - 1);
+                        qp.modifier = Math.min(60, (qp.modifier || 0) + 20);
+                        qp.wrongCount = (qp.wrongCount || 0) + 1;
+                        qp.firstCorrect = false;
+                    } 
+                    
+                    const entry = { timestamp: Date.now(), correct: a.correct }; 
+                    if (a.type === 'open') { 
+                        entry.userAnswer = a.userAnswer || ''; 
+                        entry.correctAnswer = a.correctAnswer || ''; 
+                        if (a.punctuationWarning) entry.punctuationWarning = true;
+                    } else if (a.type === 'choice') { 
+                        entry.chosenIdx = a.chosenIdx; 
+                        entry.options = a.options; 
+                        entry.correctIdx = a.correctIdx; 
+                    }
+                    
+                    const isDuplicate = qp.history.some(existing => 
+                        (entry.timestamp - existing.timestamp < 8000) &&
+                        existing.correct === entry.correct &&
+                        existing.userAnswer === entry.userAnswer &&
+                        existing.chosenIdx === entry.chosenIdx
+                    );
+                    if (!isDuplicate) {
+                        qp.history.push(entry);
+                    }
+                });
+
+                // Проверяем, все ли вопросы освоены
+                const allMastered = allQuestions.every(q => {
+                    const stats = tp.questions[safeKey(q.question)] || { correctCount: 0, firstCorrect: false };
+                    const maxNeeded = getMaxNeeded(stats, tp.levelUpAt);
+                    return (stats.correctCount || 0) >= maxNeeded;
+                });
+
+                if (allMastered && allQuestions.length > 0) {
+                    // Вместо немедленного level-up устанавливаем флаг finalTestPending
+                    tp.finalTestPending = true;
+                }
+
+                tp.testHistory.push({ timestamp: Date.now(), score, total, percentage: perc });
+                await update(studentRef, { topicProgress });
+                
+                // Автоочистка дубликатов
+                try {
+                    const DUPES_WINDOW_MS = 8000;
+                    const freshSnap = await get(studentRef);
+                    const freshStudent = freshSnap.val() || {};
+                    const freshTp = freshStudent.topicProgress || {};
+                    let hasChanges = false;
+                    
+                    for (const [tId, tProg] of Object.entries(freshTp)) {
+                        const questions = tProg.questions || {};
+                        for (const [qKey, qData] of Object.entries(questions)) {
+                            const history = qData.history || [];
+                            if (history.length < 2) continue;
+                            
+                            const sorted = [...history].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                            const toRemove = new Set();
+                            for (let i = 1; i < sorted.length; i++) {
+                                const prev = sorted[i - 1];
+                                const curr = sorted[i];
+                                const diff = (curr.timestamp || 0) - (prev.timestamp || 0);
+                                if (diff >= 0 && diff <= DUPES_WINDOW_MS) {
+                                    toRemove.add(curr);
+                                }
+                            }
+                            
+                            if (toRemove.size > 0) {
+                                const filtered = sorted.filter(rec => {
+                                    for (const dup of toRemove) {
+                                        if (dup.timestamp === rec.timestamp && dup.userAnswer === rec.userAnswer && dup.correct === rec.correct) {
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                });
+                                
+                                const maxNeeded = getMaxNeeded(qData, tProg.levelUpAt);
+                                const levelUpAt = tProg.levelUpAt || 0;
+                                let recalcCorrectCount = 0;
+                                for (const hRec of filtered) {
+                                    if (levelUpAt > 0 && hRec.timestamp < levelUpAt) continue;
+                                    if (hRec.correct) {
+                                        recalcCorrectCount = Math.min(maxNeeded, recalcCorrectCount + 1);
+                                    } else {
+                                        recalcCorrectCount = Math.max(0, recalcCorrectCount - 1);
+                                    }
+                                }
+                                
+                                qData.history = filtered;
+                                qData.correctCount = recalcCorrectCount;
+                                hasChanges = true;
+                            }
+                        }
+                    }
+                    
+                    if (hasChanges) {
+                        await update(studentRef, { topicProgress: freshTp });
+                    }
+                } catch (e) {
+                    console.error('Ошибка при автоочистке дубликатов:', e);
+                }
+                
+                testFinishing = false;
+
+                // Показываем результаты теста
+                const quotesSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/quotesSettings`)); 
+                const quotesSettings = quotesSnap.val() || {};
+                let quote, author, img, bgSize, bgPosX, bgPosY;
+                const def = { low: { quote: '«Не ошибается лишь тот, кто ничего не делает»', author: 'Теодор Рузвельт' }, mid: { quote: '«Самое прекрасное в обучении то, что никто не может его у вас отнять»', author: 'Би Би Кинг' }, high: { quote: '«Это всегда кажется невозможным, пока это не сделано»', author: 'Нельсон Мандела' }, perfect: { quote: '«Будущее принадлежит тем, кто верит в красоту своей мечты»', author: 'Элеонора Рузвельт' } };
+                if (perc < 50) { const s = quotesSettings.low || {}; quote = s.quote || def.low.quote; author = s.author || def.low.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgPosY || '50'; }
+                else if (perc < 70) { const s = quotesSettings.mid || {}; quote = s.quote || def.mid.quote; author = s.author || def.mid.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgSize || '50'; }
+                else if (perc < 100) { const s = quotesSettings.high || {}; quote = s.quote || def.high.quote; author = s.author || def.high.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgPosX || '50'; bgPosY = s.bgPosY || '50'; }
+                else { const s = quotesSettings.perfect || {}; quote = s.quote || def.perfect.quote; author = s.author || def.perfect.author; img = s.img || ''; bgSize = s.bgSize || 'cover'; bgPosX = s.bgSize || '50'; bgPosY = s.bgSize || '50'; }
+                let imgHtml = img ? `<div class="back" style="background-image:url('${img}'); background-size:${bgSize}%; background-position:${bgPosX}% ${bgPosY}%;"></div>` : `<div class="back"><p>${author}</p></div>`;
+                let resultHtml = `<div style="text-align:center;"><h2>🎉 Тест завершён!</h2><div class="score-circle"><div class="front">${score}/${total}</div>${imgHtml}</div><p style="font-size:1.2rem;margin:1rem 0;">Правильных ответов: <strong>${perc}%</strong></p><p class="quote">${quote}<br>— ${author}</p>`;
+                // Если все шкалы заполнены — показываем сообщение об итоговом тесте
+                if (allMastered && allQuestions.length > 0) {
+                    resultHtml += `<p style="color:#2980b9; font-weight:600; margin-top:1rem; margin-bottom:0.8rem;">🎯 Все задания освоены! Фон темы изменился на пастельно-синий.<br>Пройдите итоговый тест, чтобы перейти на новый уровень.</p>`;
+                    // Меняем фон на пастельно-синий
+                    document.body.classList.add('final-test-mode');
+                }
+                resultHtml += `</div><h4 style="margin-top:0.8rem;">📋 Подробные результаты:</h4>`;
+                answers.forEach((a, i) => { 
+                    const q = test[i]; 
+                    let d = ''; 
+                    if (q.type === 'card') d = `<p>Карточка ${a.correct ? '✓ просмотрена' : '✗ не просмотрена'}</p>`; 
+                    else if (q.type === 'open') { 
+                        const ua = a.userAnswer || ''; 
+                        const ca = a.correctAnswer || ''; 
+                        const punctuationWarning = a.punctuationWarning || false; 
+                        if (a.correct && !punctuationWarning) { 
+                            d = `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p>Правильный: <strong>${escapeHtml(ca)}</strong></p>`; 
+                        } else if (a.correct && punctuationWarning) { 
+                            d = `<p>Ваш ответ: <strong>${escapeHtml(ua)}</strong></p><p>Правильный: <strong>${escapeHtml(ca)}</strong></p><p style="color:#d4a017;">🔍 Не забывайте ставить знак препинания в конце предложения!</p>`; 
+                        } else {
+                            const maxLen = Math.max(ua.length, ca.length); 
+                            let userHtml = '', correctHtml = ''; 
+                            for (let i = 0; i < maxLen; i++) { 
+                                const uChar = ua[i] || ''; 
+                                const cChar = ca[i] || ''; 
+                                if (uChar === cChar) { 
+                                    userHtml += escapeHtml(uChar); 
+                                    correctHtml += escapeHtml(cChar); 
+                                } else { 
+                                    userHtml += `<span class="wrong-answer">${escapeHtml(uChar || ' ')}</span>`; 
+                                    correctHtml += `<span class="correct-answer">${escapeHtml(cChar || ' ')}</span>`; 
+                                } 
+                            } 
+                            d = `<p>Ваш ответ: ${userHtml || '—'}</p><p>Правильный: ${correctHtml || '—'}</p>`; 
+                        } 
+                    } else d = `<p>Правильный вариант: <strong>${escapeHtml(q.options[q.correctIdx])}</strong></p>`; 
+                    const explImgHtml = a.explanationImage ? `<div class="resizable-image-container" style="margin:0.5rem 0;${a.explanationImageWidth ? `width:${a.explanationImageWidth}px;height:${a.explanationImageHeight}px;` : ''}"><img src="${escapeHtml(a.explanationImage)}" class="resizable-image" alt="Изображение к объяснению"><div class="resize-handle"></div></div>` : '';
+                    resultHtml += `<div class="test-question" style="border-color:${a.correct ? '#10b981' : '#ef4444'}"><p style="font-weight:600;">${i + 1}. ${escapeHtml(a.question)}</p>${d}${a.explanation ? `<div class="explanation">💡 ${escapeHtml(a.explanation)}</div>` : ''}${explImgHtml}</div>`;
+                });
+                backdrop.innerHTML = `<div class="modal-content"><button class="modal-close">&times;</button>${resultHtml}</div>`;
+                backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            }
+            renderQuestion();
+        }
+
+        async function render() {
+            const appEl = document.getElementById('app');
+            if (!currentStudent) {
+                await renderLogin(appEl);
+            } else if (!currentStudent.nameConfirmed) {
+                await renderNicknameSelection(appEl);
+            } else { 
+                updateUIForUser(currentStudent.name); 
+                renderDashboard(appEl); 
+            }
+        }
+
+        async function init() {
+            let currentUser = await new Promise(resolve => {
+                const unsubscribe = onAuthStateChanged(auth, user => {
+                    unsubscribe();
+                    resolve(user);
+                });
+            });
+            
+            if (!currentUser && currentStudent) {
+                currentUser = await ensureAuth();
+                if (currentUser && currentUser.uid === currentStudent.uid) {
+                    console.log('Анонимная сессия восстановлена');
+                }
+            }
+            
+            if (!currentUser) {
+                await renderLogin(document.getElementById('app'));
+                return;
+            }
+            
+            const authSnap = await get(ref(db, `student_credentials/${currentUser.uid}`));
+            if (authSnap.exists()) {
+                const teachersSnap = await get(ref(db, 'teachers'));
+                if (teachersSnap.exists()) {
+                    for (const [teacherId, teacherData] of Object.entries(teachersSnap.val())) {
+                        if (teacherData.students && teacherData.students[currentUser.uid]) {
+                            currentStudent = {
+                                teacherId,
+                                uid: currentUser.uid,
+                                name: teacherData.students[currentUser.uid].name,
+                                nameConfirmed: true
+                            };
+                            localStorage.setItem('student_session', JSON.stringify(currentStudent));
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            await render();
+            if (currentStudent && currentStudent.nameConfirmed) {
+                setTimeout(() => checkForUpdates(true), 1000);
+            }
+        }
+
+        init();
+
+        // Image resize functionality
+        document.addEventListener('mousedown', function(e) {
+            const handle = e.target.closest('.resize-handle');
+            if (!handle) return;
+            e.preventDefault();
+            const container = handle.closest('.resizable-image-container');
+            const img = container.querySelector('.resizable-image');
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startW = container.offsetWidth;
+            const startH = container.offsetHeight;
+            const aspect = startW / startH;
+
+            function onMove(ev) {
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                let newW = startW + dx;
+                let newH = newW / aspect;
+                container.style.width = newW + 'px';
+                container.style.height = newH + 'px';
+            }
+
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+
+        // Автоматическая подстройка высоты textarea при вводе текста
+        document.addEventListener('input', function(e) {
+            if (e.target.tagName === 'TEXTAREA' && e.target.id === 'openAnswer') {
+                e.target.style.height = 'auto';
+                e.target.style.height = (e.target.scrollHeight) + 'px';
+            }
+        });
+
+        // ===================== ЗАГРУЗКА ОФЛАЙН-РЕЗУЛЬТАТОВ =====================
+        window.processOfflineResults = async function(data) {
+            if (!currentStudent) {
+                showNotification('Сначала войдите в систему.', 'error', 3000);
+                return;
+            }
+            if (!data || !data.results || !data.results.length) {
+                showNotification('Файл не содержит результатов.', 'error', 3000);
+                return;
+            }
+            
+            try {
+                // Убеждаемся, что есть Firebase Auth сессия (для ghost users без auth)
+                try {
+                    await ensureAuth();
+                } catch (e) {
+                    console.warn('ensureAuth не удалась, но пробуем дальше:', e);
+                }
+                
+                const studentRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}`);
+                const snap = await get(studentRef);
+                const studentData = snap.val() || {};
+                let topicProgress = studentData.topicProgress || {};
+                let imported = 0;
+                
+                // Группируем результаты по topicId
+                const grouped = {};
+                data.results.forEach(function(r) {
+                    if (!grouped[r.topicId]) grouped[r.topicId] = [];
+                    grouped[r.topicId].push(r);
+                });
+                
+                for (const topicId of Object.keys(grouped)) {
+                    if (!topicProgress[topicId]) {
+                        topicProgress[topicId] = { level: 1, questions: {}, testHistory: [] };
+                    }
+                    const tp = topicProgress[topicId];
+                    const results = grouped[topicId];
+                    
+                    // Получаем список всех вопросов темы для проверки allMastered
+                    const topicSnap = await get(ref(db, `teachers/${currentStudent.teacherId}/topics/${topicId}`));
+                    const allQuestions = topicSnap.exists() ? (topicSnap.val().test || []) : [];
+                    
+                    // Защита от дубликатов: хеши уже обработанных записей в рамках этой загрузки
+                    const processedHashes = new Set();
+                    
+                    results.forEach(function(r) {
+                        // Обновляем прогресс вопроса
+                        const key = safeKey(r.question);
+                        if (!tp.questions[key]) {
+                            tp.questions[key] = { correctCount: 0, wrongCount: 0, modifier: 0, firstCorrect: false, history: [] };
+                        }
+                        const qp = tp.questions[key];
+                        
+                        // Проверка на дубликат: если запись с таким же timestamp уже есть в истории — пропускаем
+                        const entryTimestamp = r.timestamp || Date.now();
+                        const isDuplicate = (qp.history || []).some(function(existing) {
+                            return (entryTimestamp - existing.timestamp < 8000) &&
+                                existing.correct === r.correct &&
+                                existing.userAnswer === r.userAnswer &&
+                                existing.chosenIdx === r.chosenIdx;
+                        });
+                        if (isDuplicate) return;
+                        
+                        // Проверка на дубликат в рамках одной загрузки (одинаковый timestamp)
+                        const hash = key + '_' + r.correct + '_' + entryTimestamp + '_' + (r.userAnswer || '') + '_' + (r.chosenIdx ?? '');
+                        if (processedHashes.has(hash)) return;
+                        processedHashes.add(hash);
+                        
+                        // Убедимся, что history существует перед push
+                        if (!qp.history) qp.history = [];
+                        
+                        // Обновляем modifier (не зависит от пересчёта correctCount)
+                        if (r.correct) {
+                            if (qp.modifier > 0) {
+                                qp.modifier = Math.max(0, qp.modifier - 20);
+                            }
+                        } else {
+                            qp.modifier = Math.min(60, (qp.modifier || 0) + 20);
+                            qp.wrongCount = (qp.wrongCount || 0) + 1;
+                        }
+                        
+                        // Добавляем в историю
+                        const entry = { timestamp: entryTimestamp, correct: r.correct };
+                        if (r.type === 'open') { entry.userAnswer = r.userAnswer || ''; entry.correctAnswer = r.correctAnswer || ''; if (r.punctuationWarning) entry.punctuationWarning = true; }
+                        else if (r.type === 'choice') { entry.chosenIdx = r.chosenIdx; entry.options = r.options; entry.correctIdx = r.correctIdx; }
+                        qp.history.push(entry);
+                        
+                        imported++;
+                    });
+                    
+                    // Пересчитываем correctCount и firstCorrect для всех вопросов темы на основе полной истории
+                    // (чтобы избежать проблемы, когда инкрементальный подсчёт даёт неверный результат
+                    //  из-за того, что ошибки в новой порции ответов уменьшают correctCount,
+                    //  а правильные ответы не могут его поднять выше maxNeeded)
+                    allQuestions.forEach(function(q) {
+                        const k = safeKey(q.question);
+                        const qp = tp.questions[k];
+                        if (!qp || !qp.history || qp.history.length === 0) return;
+                        
+                        const levelUpAt = tp.levelUpAt || 0;
+                        const sortedHistory = [...qp.history].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                        
+                        // Пересчитываем correctCount с нуля
+                        let recalcCorrect = 0;
+                        let hasAnyCorrect = false;
+                        let firstAnswerWasCorrect = false;
+                        let foundFirst = false;
+                        
+                        for (const h of sortedHistory) {
+                            if (levelUpAt > 0 && h.timestamp < levelUpAt) continue;
+                            
+                            if (!foundFirst) {
+                                foundFirst = true;
+                                firstAnswerWasCorrect = h.correct;
+                            }
+                            
+                            if (h.correct) {
+                                hasAnyCorrect = true;
+                                // Временный maxNeeded для пересчёта — используем 4 как базовый,
+                                // потом переопределим firstCorrect
+                                recalcCorrect = Math.min(4, recalcCorrect + 1);
+                            } else {
+                                recalcCorrect = Math.max(0, recalcCorrect - 1);
+                            }
+                        }
+                        
+                        // Определяем firstCorrect: первый ответ после levelUpAt был правильным
+                        // и не было ошибок после него
+                        const postLevelUp = sortedHistory.filter(h => levelUpAt === 0 || h.timestamp >= levelUpAt);
+                        const firstPostCorrect = postLevelUp.length > 0 && postLevelUp[0].correct;
+                        const noErrorsAfter = postLevelUp.every(h => h.correct);
+                        qp.firstCorrect = firstPostCorrect && noErrorsAfter;
+                        
+                        // Пересчитываем с учётом правильного maxNeeded
+                        const maxNeeded = getMaxNeeded(qp, tp.levelUpAt);
+                        recalcCorrect = 0;
+                        for (const h of sortedHistory) {
+                            if (levelUpAt > 0 && h.timestamp < levelUpAt) continue;
+                            if (h.correct) {
+                                recalcCorrect = Math.min(maxNeeded, recalcCorrect + 1);
+                            } else {
+                                recalcCorrect = Math.max(0, recalcCorrect - 1);
+                            }
+                        }
+                        qp.correctCount = recalcCorrect;
+                    });
+
+                    
+                    // Проверяем, все ли вопросы освоены (как в finishTest)
+                    const allMastered = allQuestions.length > 0 && allQuestions.every(function(q) {
+                        const stats = tp.questions[safeKey(q.question)] || { correctCount: 0, firstCorrect: false };
+                        const maxNeeded = getMaxNeeded(stats, tp.levelUpAt);
+                        return (stats.correctCount || 0) >= maxNeeded;
+                    });
+                    
+                    if (allMastered) {
+                        tp.finalTestPending = true;
+                    }
+                    
+                    // Добавляем запись в testHistory (одну на группу)
+                    const lastResult = results[results.length - 1];
+                    tp.testHistory.push({
+                        timestamp: lastResult.timestamp || Date.now(),
+                        score: lastResult.score || results.filter(function(r){ return r.correct; }).length,
+                        total: lastResult.total || results.length,
+                        percentage: lastResult.percentage || Math.round(results.filter(function(r){ return r.correct; }).length / results.length * 100)
+                    });
+                }
+                
+                // Убеждаемся, что есть Firebase Auth сессия (для ghost users без auth)
+                try {
+                    await ensureAuth();
+                } catch (e) {
+                    console.warn('ensureAuth не удалась, но пробуем писать:', e);
+                }
+                
+                // Сохраняем в Firebase
+                await update(studentRef, { topicProgress: topicProgress });
+                
+                // Сохраняем полные данные .forestudy файла в историю офлайн-импортов
+                try {
+                    const importRecord = {
+                        timestamp: Date.now(),
+                        resultsCount: data.results.length,
+                        importedCount: imported,
+                        exportedAt: data.exportedAt || null,
+                        topicsCount: Object.keys(grouped).length,
+                        // Сохраняем все детали результатов, чтобы учитель мог увидеть ошибки
+                        results: data.results.map(function(r) {
+                            return {
+                                topicId: r.topicId,
+                                question: r.question,
+                                type: r.type,
+                                correct: r.correct,
+                                timestamp: r.timestamp,
+                                userAnswer: r.userAnswer || null,
+                                chosenIdx: r.chosenIdx !== undefined ? r.chosenIdx : null,
+                                correctAnswer: r.correctAnswer || null,
+                                correctIdx: r.correctIdx !== undefined ? r.correctIdx : null,
+                                options: r.options || null,
+                                punctuationWarning: r.punctuationWarning || false,
+                                score: r.score || null,
+                                total: r.total || null,
+                                percentage: r.percentage || null
+                            };
+                        })
+                    };
+                    const importsRef = ref(db, `teachers/${currentStudent.teacherId}/students/${currentStudent.uid}/offlineImports`);
+                    await push(importsRef, importRecord);
+                } catch (e) {
+                    console.error('Ошибка сохранения истории импорта:', e);
+                }
+                
+                showNotification('✅ Импортировано ' + imported + ' результатов!', 'success', 5000);
+                
+                // Принудительно обновляем дашборд, чтобы шкалы перерисовались
+                // Ждём 300мс, чтобы Firebase успел синхронизировать данные (избегаем чтения из кэша)
+                try {
+                    const appEl = document.getElementById('app');
+                    if (appEl) {
+                        await new Promise(r => setTimeout(r, 300));
+                        renderDashboard(appEl);
+                    }
+                } catch (e) {
+                    console.warn('Не удалось обновить дашборд:', e);
+                }
+            } catch (err) {
+                console.error('Ошибка импорта офлайн-результатов:', err);
+                showNotification('❌ Ошибка: ' + err.message, 'error', 5000);
+            }
+        };
+    </script>
+</body>
+</html>

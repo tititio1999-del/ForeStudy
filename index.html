@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForeStudy — Вход</title>
+    <style>
+        :root {
+            --bg: #f5f7fb; --surface: #fff; --text: #1a1a2e; --text-secondary: #555;
+            --accent: #2e7d32; --accent-hover: #1b5e20; --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08); --header-bg: #ffffffcc; --backdrop: blur(10px);
+        }
+        [data-theme="dark"] {
+            --bg: #0f172a; --surface: #1e293b; --text: #e2e8f0; --text-secondary: #94a3b8;
+            --accent: #4caf50; --accent-hover: #388e3c; --border: #334155;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4); --header-bg: #1e293bcc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s, color 0.3s;
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            z-index: 10;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover {
+            background: var(--border);
+        }
+        .card {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 2.8rem;
+            color: #2e7d32;
+            margin-bottom: 0.3rem;
+        }
+        [data-theme="dark"] .logo {
+            color: #4caf50;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            margin-bottom: 2.2rem;
+            line-height: 1.5;
+        }
+        .role-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .role-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            color: var(--text);
+            text-align: left;
+        }
+        .role-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.15);
+        }
+        [data-theme="dark"] .role-btn:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.2);
+        }
+        .role-icon {
+            font-size: 2.2rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .role-icon.teacher {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        [data-theme="dark"] .role-icon.teacher {
+            background: #1a3a1a;
+            color: #4caf50;
+        }
+        .role-icon.student {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        [data-theme="dark"] .role-icon.student {
+            background: #0d2137;
+            color: #64b5f6;
+        }
+        .role-info h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .role-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        .footer-text {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        @media (max-width: 480px) {
+            .card { padding: 2rem 1.5rem; }
+            .logo { font-size: 2.2rem; }
+            .role-btn { padding: 1rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" title="Сменить тему">🌙</button>
+
+    <div class="card">
+        <div class="logo">ForeStudy</div>
+        <p class="subtitle">Интерактивная платформа для обучения<br>Выберите вашу роль</p>
+
+        <div class="role-grid">
+            <a href="teacher.html" class="role-btn">
+                <div class="role-icon teacher">👩‍🏫</div>
+                <div class="role-info">
+                    <h3>Я учитель</h3>
+                    <p>Создавайте тесты, управляйте классом,<br>отслеживайте прогресс учеников</p>
+                </div>
+            </a>
+            <a href="student.html" class="role-btn">
+                <div class="role-icon student">👨‍🎓</div>
+                <div class="role-info">
+                    <h3>Я ученик</h3>
+                    <p>Проходите тесты, изучайте теорию,<br>следите за своими успехами</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="footer-text">ForeStudy © 2026</div>
+    </div>
+
+    <script>
+        // Theme toggle
+        (function() {
+            const btn = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('forestudy-theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️';
+            }
+            btn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('forestudy-theme', 'light');
+                    btn.textContent = '🌙';
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('forestudy-theme', 'dark');
+                    btn.textContent = '☀️';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
