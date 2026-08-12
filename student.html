@@ -206,6 +206,69 @@
         .resizable-image { display:block; max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border); }
         .resize-handle { position:absolute; bottom:0; right:0; width:16px; height:16px; cursor:nwse-resize; background:rgba(0,0,0,0.3); border-radius:0 0 8px 0; }
         .resize-handle::after { content:''; position:absolute; bottom:3px; right:3px; width:8px; height:8px; border-right:2px solid white; border-bottom:2px solid white; }
+
+        /* ── Словарик ученика ─────────────────────────────────── */
+        .dict-head { text-align: center; margin-bottom: 1.2rem; }
+        .dict-head h2 { font-size: 1.5rem; margin-bottom: 0.2rem; }
+        .dict-head p { color: var(--text-secondary); font-size: 0.9rem; }
+        .dict-search {
+            width: 100%; padding: 0.7rem 1.1rem; border-radius: 2rem;
+            border: 2px solid var(--border); background: var(--surface); color: var(--text);
+            font-size: 0.95rem; outline: none; transition: border-color 0.2s; margin-bottom: 0.9rem;
+        }
+        .dict-search:focus { border-color: var(--accent); }
+        .dict-filter-row { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; }
+        .dict-topic { margin: 1rem 0 0.4rem; }
+        .dict-topic-toggle {
+            width: 100%; display: flex; align-items: center; gap: 0.6rem;
+            font-size: 1.15rem; font-weight: 700; color: var(--accent);
+            background: none; border: none; border-bottom: 2px solid var(--border);
+            padding: 0.45rem 0.3rem; cursor: pointer; text-align: left;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .dict-topic-toggle:hover { color: var(--accent-hover); border-color: var(--accent); }
+        .dict-topic-arrow { display: inline-block; transition: transform 0.2s; font-size: 0.9rem; flex-shrink: 0; }
+        .dict-topic.collapsed .dict-topic-arrow { transform: rotate(-90deg); }
+        .dict-topic-count { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-left: auto; }
+        .dict-topic.collapsed .dict-topic-words { display: none; }
+        .word-card { border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1.2rem; margin: 0.6rem 0; background: var(--surface); box-shadow: var(--shadow); }
+        .word-card.mine { border-color: #4caf50; }
+        .word-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .word-en { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+        .word-ru { font-size: 0.95rem; color: var(--text-secondary); }
+        .word-trans { color: var(--text-secondary); font-size: 0.85rem; font-style: italic; }
+        .word-speak {
+            width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent);
+            background: transparent; color: var(--accent); font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;
+        }
+        .word-speak:hover { background: var(--accent); color: white; }
+        .level-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 0.72rem;
+            color: white; flex-shrink: 0;
+        }
+        .level-A0 { background: #009688; } .level-A1 { background: #4caf50; } .level-A2 { background: #8bc34a; }
+        .level-B1 { background: #ff9800; } .level-B2 { background: #ff5722; }
+        .level-C1 { background: #9c27b0; } .level-C2 { background: #3f51b5; }
+        .topic-tag {
+            display: inline-flex; align-items: center; padding: 0.12rem 0.65rem; border-radius: 2rem;
+            background: #e8f5e9; color: #2e7d32; font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+        }
+        [data-theme="dark"] .topic-tag { background: #1a3a2a; color: #4caf50; }
+        .word-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-left: auto; }
+        .dict-mine-badge { display: inline-flex; align-items: center; padding: 0.12rem 0.6rem; border-radius: 2rem; background: #e8f5e9; color: #2e7d32; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+        [data-theme="dark"] .dict-mine-badge { background: #1a3a2a; color: #4caf50; }
+        .dict-teacher-badge { display: inline-flex; align-items: center; padding: 0.12rem 0.6rem; border-radius: 2rem; background: #e3f2fd; color: #1565c0; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+        [data-theme="dark"] .dict-teacher-badge { background: #0d2137; color: #64b5f6; }
+        .word-delete {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border);
+            background: transparent; color: #b91c1c; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+        }
+        .word-delete:hover { background: #b91c1c; color: white; border-color: #b91c1c; }
+        .dict-count { text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 0.9rem; }
+        .dict-empty { color: var(--text-secondary); font-style: italic; padding: 1.5rem 0; text-align: center; }
     </style>
 </head>
 <body>
@@ -1082,6 +1145,206 @@
             renderQuestion();
         }
 
+        // ===================== СЛОВАРИК УЧЕНИКА =====================
+        // Озвучка: используем голос, выбранный учителем (поле `voice` в слове)
+        const DICT_SE_VOICES = ['Brian', 'Amy', 'Emma', 'Geraint', 'Joanna', 'Justin', 'Matthew', 'Salli', 'Ivy', 'Kendra', 'Joey', 'Nicole', 'Russell'];
+        let dictEnVoices = [];
+        function dictLoadVoices() {
+            try { dictEnVoices = (speechSynthesis.getVoices() || []).filter(v => /^en[-_]/i.test(v.lang)); }
+            catch (e) { dictEnVoices = []; }
+        }
+        if ('speechSynthesis' in window) {
+            dictLoadVoices();
+            speechSynthesis.onvoiceschanged = dictLoadVoices;
+            [100, 300, 700, 1500].forEach(ms => setTimeout(dictLoadVoices, ms));
+        }
+        function dictPickEnVoice() {
+            if (!dictEnVoices.length) return null;
+            const prefer = ['en-US', 'en-GB', 'en-AU', 'en-CA', 'en-IN', 'en'];
+            for (const p of prefer) {
+                const v = dictEnVoices.find(v => v.lang.toLowerCase().startsWith(p));
+                if (v) return v;
+            }
+            return dictEnVoices[0];
+        }
+        function dictSpeakNative(text, voiceObj) {
+            if (!('speechSynthesis' in window)) return false;
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            if (voiceObj) { u.lang = voiceObj.lang; u.voice = voiceObj; } else { u.lang = 'en-US'; }
+            u.rate = 0.85; u.pitch = 1;
+            try { speechSynthesis.speak(u); return true; } catch (e) { return false; }
+        }
+        function dictSpeakForeign(text, src) {
+            const q = encodeURIComponent(text);
+            const audio = new Audio();
+            if (src === 'google') {
+                audio.src = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + q;
+            } else {
+                const v = src && src.startsWith('se:') ? src.slice(3) : (DICT_SE_VOICES.includes(src) ? src : 'Brian');
+                const url1 = 'https://api.streamelements.com/kappa/v2/speech?voice=' + encodeURIComponent(v) + '&text=' + q;
+                const url2 = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + q;
+                audio.src = url1;
+                audio.onerror = () => { if (audio.src !== url2) { audio.src = url2; audio.onerror = null; audio.play().catch(() => {}); } };
+            }
+            audio.play().catch(() => {});
+        }
+        // Воспроизведение слова с учётом голоса, выбранного учителем (field voice)
+        function dictPlayWord(wordText, voiceField) {
+            if (voiceField === 'google') { dictSpeakForeign(wordText, 'google'); return; }
+            if (voiceField && (voiceField.startsWith('se:') || DICT_SE_VOICES.includes(voiceField))) { dictSpeakForeign(wordText, voiceField); return; }
+            if (voiceField && voiceField.startsWith('native:')) {
+                const name = voiceField.slice(7);
+                const v = dictEnVoices.find(x => x.name === name) || dictPickEnVoice();
+                if (!dictSpeakNative(wordText, v)) dictSpeakForeign(wordText, 'Brian');
+                return;
+            }
+            // авто / streamelements
+            if (!dictSpeakNative(wordText, dictPickEnVoice())) dictSpeakForeign(wordText, 'Brian');
+        }
+
+        // Собственные слова ученика: teachers/{teacherId}/students/{uid}/myWords
+        async function renderStudentDictionary(container) {
+            if (!container) container = document.getElementById('tabContent');
+            if (!container) return;
+            const teacherId = currentStudent.teacherId;
+            const uid = currentStudent.uid;
+            let teacherWords = [];
+            try {
+                const snap = await get(ref(db, `teachers/${teacherId}/dictionary`));
+                const obj = snap.val() || {};
+                // Ученик видит только те слова учителя, которые ему назначены (assignedTo содержит uid)
+                teacherWords = Object.entries(obj)
+                    .filter(([, w]) => w && Array.isArray(w.assignedTo) && w.assignedTo.includes(uid))
+                    .map(([k, w]) => Object.assign({}, w, { _src: 'teacher', _key: k }));
+            } catch (e) { teacherWords = []; }
+            let myWords = [];
+            try {
+                const snap = await get(ref(db, `teachers/${teacherId}/students/${uid}/myWords`));
+                const obj = snap.val() || {};
+                myWords = Object.entries(obj).map(([k, w]) => Object.assign({}, w, { _src: 'mine', _key: k }));
+            } catch (e) { myWords = []; }
+
+            let search = '';
+            let collapsed = new Set();
+            const COLLAPSE_KEY = 'forestudy-student-dict-collapsed';
+            try { collapsed = new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]')); } catch (e) {}
+
+            function allWords() { return teacherWords.concat(myWords); }
+
+            function draw() {
+                const all = allWords();
+                const q = search.toLowerCase();
+                const filtered = all.filter(w =>
+                    (!q || String(w.en).toLowerCase().includes(q) || String(w.ru||'').toLowerCase().includes(q) || String(w.topic||'').toLowerCase().includes(q))
+                );
+                const topics = [...new Set(all.map(w => w.topic))].sort((a, b) => String(a).localeCompare(b, 'ru'));
+                let html = '<div class="dict-head"><h2>📖 Словарик</h2><p>Слова от учителя и ваши собственные</p></div>';
+                html += '<div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:0.9rem;"><button class="btn" id="dictAddMy">➕ Своё слово</button></div>';
+                html += '<input class="dict-search" id="dictSearch" placeholder="🔍 Найти слово..." value="' + escapeHtml(search) + '">';
+                html += '<div class="dict-filter-row">' + topics.map(t =>
+                    '<button class="btn outline small" data-dt="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>'
+                ).join('') + '</div>';
+                html += '<div class="dict-count">Слов: <strong>' + all.length + '</strong> (учителя: ' + teacherWords.length + ', свои: ' + myWords.length + ')</div>';
+                if (filtered.length === 0) { html += '<div class="dict-empty">Пока здесь пусто. Добавьте своё слово или дождитесь слов от учителя.</div>'; }
+                else {
+                    const byTopic = {};
+                    filtered.forEach(w => { const t = w.topic || 'Без темы'; (byTopic[t] = byTopic[t] || []).push(w); });
+                    Object.keys(byTopic).sort((a,b)=>a.localeCompare(b,'ru')).forEach(t => {
+                        const words = byTopic[t].sort((a,b)=>String(a.en).localeCompare(b.en));
+                        const isCollapsed = collapsed.has(t);
+                        html += '<div class="dict-topic' + (isCollapsed ? ' collapsed' : '') + '">';
+                        html += '<button class="dict-topic-toggle" data-dtc="' + escapeHtml(t) + '"><span class="dict-topic-arrow">▾</span>' + escapeHtml(t) + '<span class="dict-topic-count">' + words.length + '</span></button>';
+                        html += '<div class="dict-topic-words">';
+                        words.forEach(w => {
+                            const isMine = w._src === 'mine';
+                            html += '<div class="word-card' + (isMine ? ' mine' : '') + '">' +
+                                '<div class="word-row">' +
+                                    '<div style="min-width:0;">' +
+                                        '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">' +
+                                            '<span class="word-en">' + escapeHtml(w.en) + '</span>' +
+                                            '<button class="word-speak" title="Прослушать" data-dw="' + escapeHtml(w.en) + '" data-dv="' + escapeHtml(w.voice || '') + '">🔊</button>' +
+                                            '<span class="word-trans">' + escapeHtml(w.trans || '') + '</span>' +
+                                        '</div>' +
+                                        '<div class="word-ru">' + escapeHtml(w.ru) + '</div>' +
+                                    '</div>' +
+                                    '<div class="word-meta">' +
+                                        '<span class="level-badge level-' + escapeHtml(w.level) + '">' + escapeHtml(w.level) + '</span>' +
+                                        '<span class="topic-tag">' + escapeHtml(w.topic) + '</span>' +
+                                        (isMine ? '<span class="dict-mine-badge">моё</span>' : '<span class="dict-teacher-badge">от учителя</span>') +
+                                        (isMine ? '<button class="word-delete" title="Удалить" data-dd="' + escapeHtml(w._key) + '">✕</button>' : '') +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>';
+                        });
+                        html += '</div></div>';
+                    });
+                }
+                container.innerHTML = html;
+                document.getElementById('dictSearch').addEventListener('input', e => { search = e.target.value; draw(); });
+                document.getElementById('dictAddMy').onclick = () => showAddMyWordModal();
+                container.querySelectorAll('[data-dtc]').forEach(b => b.onclick = () => {
+                    const t = b.dataset.dtc;
+                    if (collapsed.has(t)) collapsed.delete(t); else collapsed.add(t);
+                    localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsed]));
+                    draw();
+                });
+                container.querySelectorAll('.word-speak').forEach(b => b.onclick = () => dictPlayWord(b.dataset.dw, b.dataset.dv));
+                container.querySelectorAll('[data-dd]').forEach(b => b.onclick = async () => {
+                    if (!confirm('Удалить это слово из вашего словарика?')) return;
+                    try { await remove(ref(db, `teachers/${teacherId}/students/${uid}/myWords/${b.dataset.dd}`)); draw(); }
+                    catch (e) { showNotification('Ошибка удаления: ' + e.message, 'error', 4000); }
+                });
+            }
+
+            function showAddMyWordModal() {
+                const all = allWords();
+                const topics = [...new Set(all.map(w => w.topic))].sort((a,b)=>a.localeCompare(b,'ru'));
+                const backdrop = showModal(`
+                    <h3>➕ Своё слово</h3>
+                    <div style="margin:0.8rem 0;"><label style="display:block;font-weight:600;margin-bottom:0.3rem;">Английское *</label><input id="mwEn" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border);"></div>
+                    <div style="margin:0.8rem 0;"><label style="display:block;font-weight:600;margin-bottom:0.3rem;">Перевод *</label><input id="mwRu" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border);"></div>
+                    <div style="margin:0.8rem 0;"><label style="display:block;font-weight:600;margin-bottom:0.3rem;">Тема</label>
+                        <select id="mwTopic" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border);">
+                            <option value="">— выберите тему —</option>
+                            ${topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
+                            <option value="__new__">➕ Новая тема...</option>
+                        </select>
+                        <input id="mwTopicNew" placeholder="Название новой темы" style="width:100%;padding:0.6rem;margin-top:0.4rem;border-radius:8px;border:1px solid var(--border);display:none;">
+                    </div>
+                    <div style="margin:0.8rem 0;"><label style="display:block;font-weight:600;margin-bottom:0.3rem;">Уровень</label>
+                        <select id="mwLevel" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--border);">
+                            ${['A0','A1','A2','B1','B2','C1','C2'].map(l=>`<option value="${l}">${l}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div id="mwErr" style="color:#ef4444;margin:0.5rem 0;"></div>
+                    <div style="display:flex;gap:0.5rem;"><button class="btn" id="mwSave">💾 Добавить</button></div>
+                `);
+                const topicSel = backdrop.querySelector('#mwTopic');
+                const topicNew = backdrop.querySelector('#mwTopicNew');
+                topicSel.onchange = () => { topicNew.style.display = topicSel.value === '__new__' ? 'block' : 'none'; };
+                backdrop.querySelector('#mwSave').onclick = async () => {
+                    const en = backdrop.querySelector('#mwEn').value.trim();
+                    const ru = backdrop.querySelector('#mwRu').value.trim();
+                    let topic = topicSel.value;
+                    if (topic === '__new__') { topic = topicNew.value.trim(); if(!topic){backdrop.querySelector('#mwErr').textContent='Введите название темы';return;} }
+                    else if (!topic) { backdrop.querySelector('#mwErr').textContent='Выберите тему'; return; }
+                    if (!en) { backdrop.querySelector('#mwErr').textContent='Введите слово'; return; }
+                    if (!ru) { backdrop.querySelector('#mwErr').textContent='Введите перевод'; return; }
+                    const dup = allWords().find(w => String(w.en).trim().toLowerCase() === en.toLowerCase() && String(w.ru||'').trim().toLowerCase() === ru.toLowerCase());
+                    if (dup) { backdrop.querySelector('#mwErr').textContent='⛔ Такое слово уже есть!'; return; }
+                    try {
+                        const nr = push(ref(db, `teachers/${teacherId}/students/${uid}/myWords`));
+                        await set(nr, { en, ru, topic, level: backdrop.querySelector('#mwLevel').value, trans: '', note: '', createdAt: Date.now() });
+                        backdrop.remove();
+                        draw();
+                    } catch (e) { backdrop.querySelector('#mwErr').textContent='Ошибка: ' + e.message; }
+                };
+            }
+
+            draw();
+        }
+
         async function renderDashboard(appEl) {
             const { teacherId, uid } = currentStudent;
             const studentRef = ref(db, `teachers/${teacherId}/students/${uid}`);
@@ -1094,10 +1357,11 @@
                 setTimeout(() => render(), 3000);
                 return;
             }
-            appEl.innerHTML = '<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;"><button class="btn outline" id="tabTopics">Мои темы</button><button class="btn outline" id="tabQuestions">Мои вопросы</button><button class="btn outline" id="tabOffline">Офлайн-версия</button></div><div id="tabContent"></div>';
+            appEl.innerHTML = '<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;"><button class="btn outline" id="tabTopics">Мои темы</button><button class="btn outline" id="tabQuestions">Мои вопросы</button><button class="btn outline" id="tabDictionary">📖 Словарик</button><button class="btn outline" id="tabOffline">Офлайн-версия</button></div><div id="tabContent"></div>';
             let currentTab = 'topics';
             const tabTopics = document.getElementById('tabTopics');
             const tabQuestions = document.getElementById('tabQuestions');
+            const tabDictionary = document.getElementById('tabDictionary');
             const tabOffline = document.getElementById('tabOffline');
             const tabContent = document.getElementById('tabContent');
             // Подписываемся на изменения данных ученика — вопросы и прогресс обновляются мгновенно
@@ -1106,16 +1370,20 @@
                 if (!tabContent) return;
                 if (currentTab === 'topics') renderTopicsTab(tabContent, student);
                 else if (currentTab === 'questions') renderQuestionsTab(tabContent, student);
+                else if (currentTab === 'dictionary') renderStudentDictionary(tabContent);
                 else renderOfflineTab(tabContent);
             });
             tabTopics.onclick = () => { currentTab = 'topics'; renderTab(); };
             tabQuestions.onclick = () => { currentTab = 'questions'; renderTab(); };
+            tabDictionary.onclick = () => { currentTab = 'dictionary'; renderTab(); };
             tabOffline.onclick = () => { currentTab = 'offline'; renderTab(); };
             function renderTab() {
                 if (currentTab === 'topics') {
                     renderTopicsTab(tabContent, student);
                 } else if (currentTab === 'questions') {
                     renderQuestionsTab(tabContent, student);
+                } else if (currentTab === 'dictionary') {
+                    renderStudentDictionary(tabContent);
                 } else {
                     renderOfflineTab(tabContent);
                 }

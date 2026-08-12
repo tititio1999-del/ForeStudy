@@ -166,6 +166,95 @@
         .norm-input label { font-size: 0.9rem; color: var(--text-secondary); }
         .norm-input input { width: 80px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; text-align: center; }
         .norm-input button { padding: 0.3rem 0.8rem; }
+
+        /* ── Словарик ─────────────────────────────────────────── */
+        .dict-head { text-align: center; margin-bottom: 1.5rem; }
+        .dict-head h2 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+        .dict-head p { color: var(--text-secondary); font-size: 0.95rem; }
+        .dict-search {
+            width: 100%; padding: 0.8rem 1.2rem; border-radius: 2rem;
+            border: 2px solid var(--border); background: var(--surface); color: var(--text);
+            font-size: 1rem; outline: none; transition: border-color 0.2s; margin-bottom: 1rem;
+        }
+        .dict-search:focus { border-color: var(--accent); }
+        .dict-filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1.2rem; }
+        .dict-abc { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: center; margin-bottom: 1.2rem; }
+        .dict-letter {
+            width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .dict-letter:hover { border-color: var(--accent); color: var(--accent); }
+        .dict-letter.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .dict-letter.disabled { opacity: 0.35; cursor: default; }
+        .dict-letter.disabled:hover { border-color: var(--border); color: var(--text); }
+        .dict-count { text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+        .dict-topic { margin: 1.2rem 0 0.5rem; }
+        .dict-topic-toggle {
+            width: 100%; display: flex; align-items: center; gap: 0.6rem;
+            font-size: 1.3rem; font-weight: 700; color: var(--accent);
+            background: none; border: none; border-bottom: 2px solid var(--border);
+            padding: 0.5rem 0.3rem; cursor: pointer; text-align: left;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .dict-topic-toggle:hover { color: var(--accent-hover); border-color: var(--accent); }
+        .dict-topic-arrow { display: inline-block; transition: transform 0.2s; font-size: 1rem; flex-shrink: 0; }
+        .dict-topic.collapsed .dict-topic-arrow { transform: rotate(-90deg); }
+        .dict-topic-count { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-left: auto; }
+        .dict-topic.collapsed .dict-topic-words { display: none; }
+        .word-card { border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.5rem; margin: 0.7rem 0; background: var(--surface); box-shadow: var(--shadow); transition: border-color 0.2s, opacity 0.2s; }
+        .word-card.learned { opacity: 0.75; }
+        .word-card.learned .word-en { text-decoration: line-through; text-decoration-color: var(--accent); }
+        .word-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+        .word-en { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+        .word-ru { font-size: 1.05rem; color: var(--text-secondary); }
+        .word-trans { color: var(--text-secondary); font-size: 0.95rem; font-style: italic; }
+        .word-speak {
+            width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent);
+            background: transparent; color: var(--accent); font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0;
+        }
+        .word-speak:hover { background: var(--accent); color: white; }
+        .level-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 34px; height: 34px; border-radius: 50%; font-weight: 700; font-size: 0.8rem;
+            color: white; flex-shrink: 0;
+        }
+        .level-A1 { background: #4caf50; } .level-A2 { background: #8bc34a; }
+        .level-B1 { background: #ff9800; } .level-B2 { background: #ff5722; }
+        .level-C1 { background: #9c27b0; } .level-C2 { background: #3f51b5; }
+        .level-A0 { background: #009688; }
+        .topic-tag {
+            display: inline-flex; align-items: center; padding: 0.15rem 0.7rem; border-radius: 2rem;
+            background: #e8f5e9; color: #2e7d32; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+        }
+        [data-theme="dark"] .topic-tag { background: #1a3a2a; color: #4caf50; }
+        .word-status {
+            display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.8rem;
+            border-radius: 2rem; border: 1px solid var(--border); background: transparent;
+            color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .word-status:hover { border-color: var(--accent); }
+        .word-status.learned { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+        [data-theme="dark"] .word-status.learned { background: #1a3a2a; color: #4caf50; }
+        .word-delete {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border);
+            background: transparent; color: #b91c1c; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+        }
+        .word-delete:hover { background: #b91c1c; color: white; border-color: #b91c1c; }
+        .word-note { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); color: var(--text-secondary); font-size: 0.85rem; line-height: 1.5; }
+        .word-note strong { color: var(--text); }
+        .word-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-left: auto; }
+        .dict-server-badge { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; border-radius: 2rem; background: #fff3cd; color: #856404; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+        [data-theme="dark"] .dict-server-badge { background: #3a2f12; color: #e6c864; }
+        .dict-voice-badge { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; border-radius: 2rem; background: #e3f2fd; color: #1565c0; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+        [data-theme="dark"] .dict-voice-badge { background: #0d2137; color: #64b5f6; }
+        .sd-status { display: inline-flex; align-items: center; padding: 0.12rem 0.6rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+        .sd-yes { background: #e8f5e9; color: #2e7d32; }
+        [data-theme="dark"] .sd-yes { background: #1a3a2a; color: #4caf50; }
+        .sd-no { background: #ffebee; color: #b91c1c; }
+        [data-theme="dark"] .sd-no { background: #3a1a1a; color: #ff8a80; }
     </style>
 </head>
 <body>
@@ -174,6 +263,7 @@
         <nav class="nav">
             <button class="nav-btn active" data-tab="students">👥 Ученики</button>
             <button class="nav-btn" data-tab="topics">📚 Темы</button>
+            <button class="nav-btn" data-tab="dictionary">📖 Словарик</button>
             <button class="nav-btn" data-tab="settings">⚙️ Настройки</button>
             <button class="nav-btn" data-tab="questions">❓ Вопросы</button>
             <button class="nav-btn" data-tab="auditLog">📋 Журнал</button>
@@ -393,6 +483,7 @@
             document.getElementById('app').innerHTML='';
             if(tab==='students') await renderStudentsTab();
             else if(tab==='topics') await renderTopicsTab();
+            else if(tab==='dictionary') await renderDictionaryTab();
             else if(tab==='settings') renderSettingsTab();
             else if(tab==='questions') await renderQuestionsTab();
             else if(tab==='auditLog') await renderAuditLogTab();
@@ -2820,6 +2911,770 @@
             backdrop.querySelector('#closeLinkDialogBtn').onclick = () => backdrop.remove();
             backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
         }
+
+        // ===================== СЛОВАРИК =====================
+        // Слова хранятся на сервере (teachers/{teacherId}/dictionary).
+        // Базовый набор Животные/Тело удалён — учитель наполняет словарь сам.
+        // БАЗОВЫЙ_МАССИВ_УДАЛЁН
+
+        // Слова, добавленные учителем (хранятся на сервере)
+        let serverWords = [];
+        async function loadServerWords() {
+            try {
+                const snap = await get(ref(db, `teachers/${teacherId}/dictionary`));
+                const obj = snap.val() || {};
+                serverWords = Object.entries(obj).map(([key, w]) => Object.assign({}, w, { _serverKey: key }));
+            } catch (e) { serverWords = []; }
+        }
+        function allDictionary() { return serverWords; }
+
+        // ── Произношение ───────────────────────────────────────
+        // Три источника: голоса устройства (native), StreamElements (SE), Google TTS
+        // Формат сохранённого voice:
+        //   ''                     — Авто (нативный en → SE Brian → Google)
+        //   'native:<имя голоса>'  — конкретный голос устройства
+        //   'se:<голос>'           — конкретный голос StreamElements (напр. se:Joanna)
+        //   'google'               — Google TTS
+        const SE_VOICES = [
+            { id: 'Brian',    label: 'Brian — муж., британский' },
+            { id: 'Amy',      label: 'Amy — жен., британский' },
+            { id: 'Emma',     label: 'Emma — жен., британский' },
+            { id: 'Geraint',  label: 'Geraint — муж., валлийский' },
+            { id: 'Joanna',   label: 'Joanna — жен., американский' },
+            { id: 'Justin',   label: 'Justin — муж., американский' },
+            { id: 'Matthew',  label: 'Matthew — муж., американский' },
+            { id: 'Salli',    label: 'Salli — жен., американский' },
+            { id: 'Ivy',      label: 'Ivy — жен., американский' },
+            { id: 'Kendra',   label: 'Kendra — жен., американский' },
+            { id: 'Joey',     label: 'Joey — муж., американский' },
+            { id: 'Nicole',   label: 'Nicole — жен., австралийский' },
+            { id: 'Russell',  label: 'Russell — муж., австралийский' }
+        ];
+        let enVoices = [];
+        function loadVoices() {
+            try { enVoices = (speechSynthesis.getVoices() || []).filter(v => /^en[-_]/i.test(v.lang)); }
+            catch (e) { enVoices = []; }
+        }
+        if ('speechSynthesis' in window) {
+            loadVoices();
+            speechSynthesis.onvoiceschanged = loadVoices;
+            [100, 300, 700, 1500].forEach(ms => setTimeout(loadVoices, ms));
+        }
+        function pickEnVoice() {
+            if (!enVoices.length) return null;
+            const prefer = ['en-US', 'en-GB', 'en-AU', 'en-CA', 'en-IN', 'en'];
+            for (const p of prefer) {
+                const v = enVoices.find(v => v.lang.toLowerCase().startsWith(p));
+                if (v) return v;
+            }
+            return enVoices[0];
+        }
+        // Воспроизведение конкретным голосом устройства (по имени) или автоголосом
+        function speakWithVoice(text, voiceObj) {
+            if (!('speechSynthesis' in window)) return false;
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            if (voiceObj) {
+                u.lang = voiceObj.lang;
+                u.voice = voiceObj;
+            } else {
+                u.lang = 'en-US';
+            }
+            u.rate = 0.85;
+            u.pitch = 1;
+            try { speechSynthesis.speak(u); return true; } catch (e) { return false; }
+        }
+        // StreamElements (внешний TTS)
+        function speakSE(text, seVoiceId) {
+            const q = encodeURIComponent(text);
+            const audio = new Audio();
+            const url1 = 'https://api.streamelements.com/kappa/v2/speech?voice=' + encodeURIComponent(seVoiceId || 'Brian') + '&text=' + q;
+            const url2 = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + q;
+            audio.src = url1;
+            audio.onerror = () => {
+                if (audio.src !== url2) { audio.src = url2; audio.onerror = null; audio.play().catch(() => {}); }
+            };
+            audio.play().catch(() => {});
+        }
+        // Google TTS — отдельный синтезатор
+        function speakGoogle(text) {
+            const q = encodeURIComponent(text);
+            const audio = new Audio();
+            audio.src = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=' + q;
+            audio.play().catch(() => {});
+        }
+        function dictSpeak(text, voice) {
+            if (!voice) {
+                // Авто: нативный en-голос → StreamElements Brian → Google
+                if (speakWithVoice(text, pickEnVoice())) return;
+                speakSE(text, 'Brian');
+                return;
+            }
+            if (voice === 'google') { speakGoogle(text); return; }
+            if (voice === 'streamelements' || voice === 'se:Brian') { speakSE(text, 'Brian'); return; }
+            if (voice.startsWith('se:')) { speakSE(text, voice.slice(3)); return; }
+            if (voice.startsWith('native:')) {
+                const name = voice.slice(7);
+                const v = enVoices.find(x => x.name === name) || pickEnVoice();
+                if (speakWithVoice(text, v)) return;
+                speakSE(text, 'Brian');
+                return;
+            }
+            // Неизвестный формат — авто
+            if (speakWithVoice(text, pickEnVoice())) return;
+            speakSE(text, 'Brian');
+        }
+        // Человекочитаемая подпись голоса (для бейджа на карточке)
+        function dictVoiceLabel(voice) {
+            if (!voice) return '';
+            if (voice === 'google') return 'Google TTS';
+            if (voice === 'streamelements' || voice === 'se:Brian') return 'SE · Brian';
+            if (voice.startsWith('se:')) {
+                const id = voice.slice(3);
+                const v = SE_VOICES.find(x => x.id === id);
+                return v ? ('SE · ' + v.id) : ('SE · ' + id);
+            }
+            if (voice.startsWith('native:')) return 'Native · ' + voice.slice(7).replace(/[_-].*$/, '');
+            return voice;
+        }
+        // Опции для селекта «Озвучка» (вызывается из форм)
+        function dictVoiceOptions(selected) {
+            let html = '<option value="">🎧 Авто (по умолчанию)</option>';
+            html += '<optgroup label="Голоса устройства">';
+            const natives = [...new Map(enVoices.map(v => [v.name, v])).values()];
+            if (natives.length) {
+                natives.forEach(v => {
+                    const val = 'native:' + v.name;
+                    html += `<option value="${escapeHtml(val)}" ${val === selected ? 'selected' : ''}>${escapeHtml(v.name)} (${escapeHtml(v.lang)})</option>`;
+                });
+            } else {
+                html += '<option disabled>Голоса загружаются…</option>';
+            }
+            html += '</optgroup>';
+            html += '<optgroup label="StreamElements (интернет)">';
+            SE_VOICES.forEach(v => {
+                const val = 'se:' + v.id;
+                html += `<option value="${val}" ${val === selected ? 'selected' : ''}>${escapeHtml(v.label)}</option>`;
+            });
+            html += '</optgroup>';
+            html += '<option value="google" ' + (selected === 'google' ? 'selected' : '') + '>Google TTS</option>';
+            return html;
+        }
+
+        // ── Состояние словаря (localStorage) ───────────────────
+        const DICT_LEARNED_KEY = 'forestudy-dict-learned';
+        let dictLearned = new Set();
+        try { dictLearned = new Set(JSON.parse(localStorage.getItem(DICT_LEARNED_KEY) || '[]')); }
+        catch (e) { dictLearned = new Set(); }
+        function dictSaveLearned() { localStorage.setItem(DICT_LEARNED_KEY, JSON.stringify([...dictLearned])); }
+
+        const DICT_COLLAPSED_KEY = 'forestudy-dict-collapsed';
+        let dictCollapsed = new Set();
+        try { dictCollapsed = new Set(JSON.parse(localStorage.getItem(DICT_COLLAPSED_KEY) || '[]')); }
+        catch (e) { dictCollapsed = new Set(); }
+        function dictSaveCollapsed() { localStorage.setItem(DICT_COLLAPSED_KEY, JSON.stringify([...dictCollapsed])); }
+
+        // ── Рендер словаря ─────────────────────────────────────
+        const DICT_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        const DICT_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+        let dictLetter = null;
+        let dictSearch = '';
+        let dictLevel = null;
+        let dictTopic = null;
+        // Режим «Словарь ученика» (встроенный, без модалки)
+        let dictStudentMode = false;
+        let dictStudentId = null;
+        let dictShowMine = false;
+        let dictStudents = [];
+        let dictStudentWords = [];
+
+        function dictGetFirstLetter(en) {
+            const ch = String(en).trim().charAt(0).toUpperCase();
+            return /^[A-Z]$/.test(ch) ? ch : '#';
+        }
+        function dictWordKey(w) { return String(w.en).toLowerCase(); }
+        function dictFiltered() {
+            let list = allDictionary().slice();
+            if (dictSearch) {
+                const q = dictSearch.toLowerCase();
+                list = list.filter(w =>
+                    String(w.ru).toLowerCase().includes(q) ||
+                    String(w.en).toLowerCase().includes(q) ||
+                    String(w.trans || '').toLowerCase().includes(q) ||
+                    String(w.note || '').toLowerCase().includes(q)
+                );
+            }
+            if (dictLetter) {
+                if (dictLetter === '#') list = list.filter(w => dictGetFirstLetter(w.en) === '#');
+                else list = list.filter(w => dictGetFirstLetter(w.en) === dictLetter);
+            }
+            if (dictLevel) list = list.filter(w => w.level === dictLevel);
+            if (dictTopic) list = list.filter(w => w.topic === dictTopic);
+            return list;
+        }
+
+        async function renderDictionaryTab() {
+            await loadServerWords();
+            // В режиме ученика подгружаем список учеников и слова выбранного
+            if (dictStudentMode) {
+                try {
+                    const stSnap = await get(ref(db, `teachers/${teacherId}/students`));
+                    const stObj = stSnap.val() || {};
+                    dictStudents = Object.entries(stObj)
+                        .filter(([, s]) => s && !s.deleted && s.name)
+                        .map(([id, s]) => ({ uid: id, name: s.name }))
+                        .sort((a, b) => String(a.name).localeCompare(b.name, 'ru'));
+                } catch (e) { dictStudents = []; }
+                if (dictStudentId) {
+                    try {
+                        const swSnap = await get(ref(db, `teachers/${teacherId}/students/${dictStudentId}/myWords`));
+                        const swObj = swSnap.val() || {};
+                        dictStudentWords = Object.entries(swObj).map(([k, w]) => Object.assign({}, w, { _key: k }));
+                    } catch (e) { dictStudentWords = []; }
+                } else { dictStudentWords = []; }
+            }
+            const app = document.getElementById('app');
+            const all = allDictionary();
+            const filtered = dictFiltered();
+            const availableLetters = new Set(all.map(w => dictGetFirstLetter(w.en)));
+            const topics = [...new Set(all.map(w => w.topic))].sort((a, b) => a.localeCompare(b, 'ru'));
+
+            let html = '<div class="dict-head"><h2>📖 Словарик английского</h2><p>Слова, переводы и произношение</p></div>';
+            if (dictStudentMode) {
+                // ── Режим «Словарь ученика» ──
+                html += '<div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:0.8rem; flex-wrap:wrap;">' +
+                    '<button class="btn outline" id="dictExitStudent">← Назад к моему словарю</button>' +
+                    '</div>';
+                html += '<div style="display:flex; gap:0.6rem; justify-content:center; margin-bottom:0.8rem; flex-wrap:wrap; align-items:center;">' +
+                    '<select id="dictStudentSelect" style="padding:0.5rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); max-width:260px;">' +
+                    '<option value="">— выберите ученика —</option>' +
+                    dictStudents.map(s => `<option value="${escapeHtml(s.uid)}" ${s.uid === dictStudentId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('') +
+                    '</select>' +
+                    '<button class="btn outline" id="dictMassBtn" title="Добавить целые темы или уровни одним кликом">⚡ Массово</button>' +
+                    '<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer; font-size:0.9rem;">' +
+                    '<input type="checkbox" id="dictShowMineCb" ' + (dictShowMine ? 'checked' : '') + '> Отобразить слова ученика</label>' +
+                    '</div>';
+            } else {
+                html += '<div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1rem; flex-wrap:wrap;">' +
+                    '<button class="btn" id="dictAddBtn">➕ Добавить слово</button>' +
+                    '<button class="btn outline" id="dictImportBtn">📥 Импорт (JSON)</button>' +
+                    '<button class="btn outline" id="dictStudentBtn">👥 Словарь ученика</button>' +
+                    '<input type="file" id="dictImportFile" accept=".json" style="display:none;">' +
+                    '</div>';
+            }
+            html += '<input class="dict-search" id="dictSearch" placeholder="🔍 Искать слово (русское или английское)..." value="' + escapeHtml(dictSearch) + '">';
+
+            // Уровень
+            html += '<div class="dict-filter-row">';
+            DICT_LEVELS.forEach(l => {
+                html += '<button class="btn outline small" data-dlevel="' + l + '" style="' + (dictLevel === l ? 'background:var(--accent);color:white;' : '') + '">' + l + '</button>';
+            });
+            html += '<button class="btn outline small" data-dlevel="clear" style="' + (dictLevel ? '' : 'display:none;') + '">✕</button>';
+            html += '</div>';
+
+            // Темы
+            html += '<div class="dict-filter-row">';
+            topics.forEach(t => {
+                html += '<button class="btn outline small" data-dtopic="' + escapeHtml(t) + '" style="' + (dictTopic === t ? 'background:var(--accent);color:white;' : '') + '">' + escapeHtml(t) + '</button>';
+            });
+            html += '<button class="btn outline small" data-dtopic="clear" style="' + (dictTopic ? '' : 'display:none;') + '">✕</button>';
+            html += '</div>';
+
+            // Алфавит
+            html += '<div class="dict-abc">';
+            html += '<button class="dict-letter' + (dictLetter === '#' ? ' active' : '') + (availableLetters.has('#') ? '' : ' disabled') + '" data-dletter="#">#</button>';
+            DICT_ALPHABET.forEach(l => {
+                html += '<button class="dict-letter' + (dictLetter === l ? ' active' : '') + (availableLetters.has(l) ? '' : ' disabled') + '" data-dletter="' + l + '">' + l + '</button>';
+            });
+            html += '</div>';
+
+            if (dictStudentMode) {
+                const assignedCount = all.filter(w => Array.isArray(w.assignedTo) && w.assignedTo.includes(dictStudentId)).length;
+                html += '<div class="dict-count">Найдено: <strong>' + filtered.length + '</strong> · У ученика: <strong>' + assignedCount + '</strong>/' + all.length + '</div>';
+            } else {
+                const learnedCount = all.filter(w => dictLearned.has(dictWordKey(w))).length;
+                html += '<div class="dict-count">Найдено: <strong>' + filtered.length + '</strong> · Выучено: <strong>' + learnedCount + '</strong>/' + all.length + '</div>';
+            }
+
+            if (filtered.length === 0) {
+                html += '<div class="empty-message">Ничего не найдено. Попробуйте другой запрос или фильтр.</div>';
+            } else {
+                const byTopic = {};
+                filtered.forEach(w => { const t = w.topic || 'Без темы'; (byTopic[t] = byTopic[t] || []).push(w); });
+                const topicOrder = Object.keys(byTopic).sort((a, b) => a.localeCompare(b, 'ru'));
+                topicOrder.forEach(t => {
+                    const words = byTopic[t].sort((a, b) => String(a.en).localeCompare(b.en));
+                    const isCollapsed = dictCollapsed.has(t);
+                    html += '<div class="dict-topic' + (isCollapsed ? ' collapsed' : '') + '">';
+                    html += '<button class="dict-topic-toggle" data-dtcoll="' + escapeHtml(t) + '">';
+                    html += '<span class="dict-topic-arrow">▾</span>' + escapeHtml(t);
+                    html += '<span class="dict-topic-count">' + words.length + ' слов</span></button>';
+                    html += '<div class="dict-topic-words">';
+                    words.forEach(w => {
+                        const isLearned = dictLearned.has(dictWordKey(w));
+                        const isServer = !!w._serverKey;
+                        let actions = '';
+                        if (dictStudentMode) {
+                            const has = Array.isArray(w.assignedTo) && dictStudentId && w.assignedTo.includes(dictStudentId);
+                            actions = has
+                                ? '<span class="sd-status sd-yes">🟢 у ученика</span><button class="btn small outline sd-toggle" data-k="' + escapeHtml(w._serverKey) + '" data-add="0" style="color:#b91c1c;border-color:#b91c1c;">Убрать</button>'
+                                : '<span class="sd-status sd-no">🔴 нет</span><button class="btn small sd-toggle" data-k="' + escapeHtml(w._serverKey) + '" data-add="1">Добавить</button>';
+                        } else {
+                            actions =
+                                (isServer ? '<button class="word-delete" title="Удалить слово" data-ddel="' + escapeHtml(w._serverKey) + '">✕</button>' : '') +
+                                (isServer ? '<button class="btn small outline" title="Редактировать слово" data-dedit="' + escapeHtml(w._serverKey) + '" style="padding:0.3rem 0.6rem;">✏️</button>' : '') +
+                                '<button class="word-status' + (isLearned ? ' learned' : '') + '" data-dlearn="' + escapeHtml(dictWordKey(w)) + '">' +
+                                    (isLearned ? '✓ Выучено' : 'Не выучено') +
+                                '</button>';
+                        }
+                        html += '<div class="word-card' + (isLearned ? ' learned' : '') + '">' +
+                            '<div class="word-row">' +
+                                '<div style="min-width:0;">' +
+                                    '<div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">' +
+                                        '<span class="word-en">' + escapeHtml(w.en) + '</span>' +
+                                        '<button class="word-speak" title="Прослушать произношение" data-dword="' + escapeHtml(w.en) + '" data-dvoice="' + escapeHtml(w.voice || '') + '">🔊</button>' +
+                                        '<span class="word-trans">' + escapeHtml(w.trans || '') + '</span>' +
+                                        (isServer ? '<span class="dict-server-badge">☁ сервер</span>' : '') +
+                                        (w.voice ? '<span class="dict-voice-badge">🎙 ' + escapeHtml(dictVoiceLabel(w.voice)) + '</span>' : '') +
+                                    '</div>' +
+                                    '<div class="word-ru">' + escapeHtml(w.ru) + '</div>' +
+                                '</div>' +
+                                '<div class="word-meta">' +
+                                    '<span class="level-badge level-' + escapeHtml(w.level) + '">' + escapeHtml(w.level) + '</span>' +
+                                    '<span class="topic-tag">' + escapeHtml(w.topic) + '</span>' +
+                                    actions +
+                                '</div>' +
+                            '</div>' +
+                            (w.note ? '<div class="word-note"><strong>💡 Примечание:</strong> ' + escapeHtml(w.note) + '</div>' : '') +
+                        '</div>';
+                    });
+                    html += '</div></div>';
+                });
+            }
+
+            // В режиме ученика — показ собственных слов ученика, если включён чекбокс
+            if (dictStudentMode && dictShowMine && dictStudentId) {
+                html += '<div style="margin-top:1.5rem;"><h3 style="font-size:1.1rem; margin-bottom:0.6rem;">📌 Слова, добавленные самим учеником</h3>';
+                if (!dictStudentWords.length) {
+                    html += '<div class="empty-message">У ученика пока нет своих слов.</div>';
+                } else {
+                    const mine = dictStudentWords.slice().sort((a, b) => String(a.en).localeCompare(b.en));
+                    mine.forEach(w => {
+                        html += '<div class="word-card" style="padding:0.7rem 1rem; margin:0.5rem 0;">' +
+                            '<div class="word-row">' +
+                                '<div style="min-width:0;">' +
+                                    '<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">' +
+                                        '<span class="word-en">' + escapeHtml(w.en) + '</span>' +
+                                        '<span class="word-trans">' + escapeHtml(w.trans || '') + '</span>' +
+                                    '</div>' +
+                                    '<div class="word-ru">' + escapeHtml(w.ru) + '</div>' +
+                                '</div>' +
+                                '<div class="word-meta">' +
+                                    '<span class="level-badge level-' + escapeHtml(w.level) + '">' + escapeHtml(w.level) + '</span>' +
+                                    '<span class="topic-tag">' + escapeHtml(w.topic) + '</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                }
+                html += '</div>';
+            }
+
+            app.innerHTML = html;
+
+            // Обработчики в зависимости от режима
+            if (dictStudentMode) {
+                const exitBtn = document.getElementById('dictExitStudent');
+                if (exitBtn) exitBtn.onclick = () => { dictStudentMode = false; dictStudentId = null; dictShowMine = false; renderDictionaryTab(); };
+                const sel = document.getElementById('dictStudentSelect');
+                if (sel) sel.onchange = (e) => { dictStudentId = e.target.value || null; renderDictionaryTab(); };
+                const massBtn = document.getElementById('dictMassBtn');
+                if (massBtn) massBtn.onclick = () => showMassAssignModal();
+                const cb = document.getElementById('dictShowMineCb');
+                if (cb) cb.onchange = () => { dictShowMine = cb.checked; renderDictionaryTab(); };
+                app.querySelectorAll('.sd-toggle').forEach(btn => btn.onclick = async () => {
+                    if (!dictStudentId) { alert('Сначала выберите ученика'); return; }
+                    const k = btn.dataset.k;
+                    const add = btn.dataset.add === '1';
+                    try {
+                        let assigned = [];
+                        const wRef = ref(db, `teachers/${teacherId}/dictionary/${k}`);
+                        const wSnap = await get(wRef);
+                        const wData = wSnap.val() || {};
+                        assigned = Array.isArray(wData.assignedTo) ? wData.assignedTo.slice() : [];
+                        if (add) { if (!assigned.includes(dictStudentId)) assigned.push(dictStudentId); }
+                        else { assigned = assigned.filter(x => x !== dictStudentId); }
+                        await update(wRef, { assignedTo: assigned.length ? assigned : null });
+                        renderDictionaryTab();
+                    } catch (e) { alert('Ошибка: ' + e.message); }
+                });
+            } else {
+                const addBtn = document.getElementById('dictAddBtn');
+                if (addBtn) addBtn.onclick = () => showAddWordModal();
+                const impBtn = document.getElementById('dictImportBtn');
+                if (impBtn) impBtn.onclick = () => document.getElementById('dictImportFile').click();
+                const stBtn = document.getElementById('dictStudentBtn');
+                if (stBtn) stBtn.onclick = () => { dictStudentMode = true; renderDictionaryTab(); };
+            }
+            const impFile = document.getElementById('dictImportFile');
+            if (impFile) impFile.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                e.target.value = '';
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    const words = Array.isArray(data) ? data : (data.words || []);
+                    let added = 0, skipped = 0, errors = 0;
+                    for (const w of words) {
+                        const en = String(w.en || '').trim();
+                        const ru = String(w.ru || '').trim();
+                        const topic = String(w.topic || '').trim();
+                        if (!en || !ru || !topic) { skipped++; continue; }
+                        const dup = serverWords.find(s =>
+                            String(s.en).trim().toLowerCase() === en.toLowerCase() &&
+                            String(s.ru).trim().toLowerCase() === ru.toLowerCase()
+                        );
+                        if (dup) { skipped++; continue; }
+                        try {
+                            const newRef = push(ref(db, `teachers/${teacherId}/dictionary`));
+                            await set(newRef, {
+                                en, ru, topic,
+                                level: String(w.level || 'A1').toUpperCase(),
+                                trans: String(w.trans || ''),
+                                voice: String(w.voice || ''),
+                                note: String(w.note || ''),
+                                createdAt: Date.now()
+                            });
+                            added++;
+                        } catch (err) { errors++; }
+                    }
+                    await loadServerWords();
+                    renderDictionaryTab();
+                    alert(`✅ Импорт завершён!\nДобавлено: ${added}\nПропущено (дубли/пустые): ${skipped}\nОшибок: ${errors}`);
+                } catch (err) { alert('❌ Ошибка чтения файла: ' + err.message); }
+            });
+            document.getElementById('dictSearch').addEventListener('input', e => { dictSearch = e.target.value; dictLetter = null; renderDictionaryTab(); });
+            app.querySelectorAll('[data-dlevel]').forEach(b => b.onclick = () => { dictLevel = b.dataset.dlevel === 'clear' ? null : b.dataset.dlevel; renderDictionaryTab(); });
+            app.querySelectorAll('[data-dtopic]').forEach(b => b.onclick = () => { dictTopic = b.dataset.dtopic === 'clear' ? null : b.dataset.dtopic; renderDictionaryTab(); });
+            app.querySelectorAll('.dict-letter:not(.disabled)').forEach(b => b.onclick = () => { dictLetter = dictLetter === b.dataset.dletter ? null : b.dataset.dletter; renderDictionaryTab(); });
+            app.querySelectorAll('[data-dtcoll]').forEach(b => b.onclick = () => {
+                const t = b.dataset.dtcoll;
+                if (dictCollapsed.has(t)) dictCollapsed.delete(t); else dictCollapsed.add(t);
+                dictSaveCollapsed(); renderDictionaryTab();
+            });
+            app.querySelectorAll('.word-speak').forEach(b => b.onclick = () => dictSpeak(b.dataset.dword, b.dataset.dvoice));
+            app.querySelectorAll('[data-dlearn]').forEach(b => b.onclick = () => {
+                const k = b.dataset.dlearn;
+                if (dictLearned.has(k)) dictLearned.delete(k); else dictLearned.add(k);
+                dictSaveLearned(); renderDictionaryTab();
+            });
+            app.querySelectorAll('[data-ddel]').forEach(b => b.onclick = async () => {
+                if (!confirm('Удалить это слово из словаря?')) return;
+                try { await remove(ref(db, `teachers/${teacherId}/dictionary/${b.dataset.ddel}`)); renderDictionaryTab(); }
+                catch (e) { alert('Ошибка удаления: ' + e.message); }
+            });
+            app.querySelectorAll('[data-dedit]').forEach(b => b.onclick = () => {
+                const w = serverWords.find(x => x._serverKey === b.dataset.dedit);
+                if (w) showEditWordModal(w);
+            });
+        }
+
+        // ── Добавление слова ───────────────────────────────────
+        function showAddWordModal() {
+            loadVoices(); // подтягиваем актуальные голоса устройства для селекта
+            const all = allDictionary();
+            const topics = [...new Set(all.map(w => w.topic))].sort((a, b) => a.localeCompare(b, 'ru'));
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:480px;">
+                    <button class="modal-close">&times;</button>
+                    <h3>➕ Добавить слово</h3>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Английское слово *</label>
+                        <input type="text" id="dwEn" placeholder="например: apple" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Перевод *</label>
+                        <input type="text" id="dwRu" placeholder="например: яблоко" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Тема</label>
+                        <select id="dwTopic" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            <option value="">— выберите тему —</option>
+                            ${topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
+                            <option value="__new__">➕ Новая тема...</option>
+                        </select>
+                        <input type="text" id="dwTopicNew" placeholder="Название новой темы" style="width:100%; padding:0.6rem; margin-top:0.5rem; border-radius:8px; border:1px solid var(--border); display:none;">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Уровень</label>
+                        <select id="dwLevel" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            ${DICT_LEVELS.map(l => `<option value="${l}">${l}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Произношение (опционально)</label>
+                        <input type="text" id="dwTrans" placeholder="например: ˈæp.əl" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Озвучка (голос для ученика)</label>
+                        <select id="dwVoice" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            ${dictVoiceOptions('')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Примечание (опционально)</label>
+                        <textarea id="dwNote" rows="2" placeholder="Полезная заметка" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);"></textarea>
+                    </div>
+                    <div id="dwErr" style="color:#ef4444; margin-bottom:0.5rem;"></div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn" id="dwSave">💾 Сохранить</button>
+                        <button class="btn outline" id="dwCancel">Отмена</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(backdrop);
+
+            const errDiv = backdrop.querySelector('#dwErr');
+            const topicSelect = backdrop.querySelector('#dwTopic');
+            const topicNew = backdrop.querySelector('#dwTopicNew');
+            topicSelect.onchange = () => { topicNew.style.display = topicSelect.value === '__new__' ? 'block' : 'none'; };
+
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#dwCancel').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+
+            backdrop.querySelector('#dwSave').onclick = async () => {
+                const en = backdrop.querySelector('#dwEn').value.trim();
+                const ru = backdrop.querySelector('#dwRu').value.trim();
+                let topic = topicSelect.value;
+                if (topic === '__new__') {
+                    topic = topicNew.value.trim();
+                    if (!topic) { errDiv.textContent = 'Введите название новой темы'; return; }
+                } else if (!topic) { errDiv.textContent = 'Выберите тему'; return; }
+                if (!en) { errDiv.textContent = 'Введите английское слово'; return; }
+                if (!ru) { errDiv.textContent = 'Введите перевод'; return; }
+
+                // Проверка дубликатов: совпадает И en, И ru (без учёта регистра)
+                const dup = allDictionary().find(w =>
+                    String(w.en).trim().toLowerCase() === en.toLowerCase() &&
+                    String(w.ru).trim().toLowerCase() === ru.toLowerCase()
+                );
+                if (dup) { errDiv.textContent = '⛔ Такое слово уже есть в словаре!'; return; }
+
+                const data = {
+                    en, ru, topic,
+                    level: backdrop.querySelector('#dwLevel').value,
+                    trans: backdrop.querySelector('#dwTrans').value.trim(),
+                    voice: backdrop.querySelector('#dwVoice').value,
+                    note: backdrop.querySelector('#dwNote').value.trim(),
+                    createdAt: Date.now()
+                };
+                try {
+                    const newRef = push(ref(db, `teachers/${teacherId}/dictionary`));
+                    await set(newRef, data);
+                    backdrop.remove();
+                    renderDictionaryTab();
+                } catch (e) { errDiv.textContent = 'Ошибка сохранения: ' + e.message; }
+            };
+        }
+
+        // ── Редактирование слова ──────────────────────────────
+        function showEditWordModal(word) {
+            loadVoices(); // подтягиваем актуальные голоса устройства для селекта
+            const all = allDictionary();
+            const topics = [...new Set(all.map(w => w.topic))].sort((a, b) => a.localeCompare(b, 'ru'));
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:480px;">
+                    <button class="modal-close">&times;</button>
+                    <h3>✏️ Редактировать слово</h3>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Английское слово *</label>
+                        <input type="text" id="deEn" value="${escapeHtml(word.en)}" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Перевод *</label>
+                        <input type="text" id="deRu" value="${escapeHtml(word.ru)}" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Тема</label>
+                        <select id="deTopic" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            <option value="">— выберите тему —</option>
+                            ${topics.map(t => `<option value="${escapeHtml(t)}" ${t === word.topic ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('')}
+                            <option value="__new__">➕ Новая тема...</option>
+                        </select>
+                        <input type="text" id="deTopicNew" placeholder="Название новой темы" style="width:100%; padding:0.6rem; margin-top:0.5rem; border-radius:8px; border:1px solid var(--border); display:none;">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Уровень</label>
+                        <select id="deLevel" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            ${DICT_LEVELS.map(l => `<option value="${l}" ${l === word.level ? 'selected' : ''}>${l}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Произношение (опционально)</label>
+                        <input type="text" id="deTrans" value="${escapeHtml(word.trans || '')}" placeholder="например: ˈæp.əl" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Озвучка (голос для ученика)</label>
+                        <select id="deVoice" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">
+                            ${dictVoiceOptions(word.voice || '')}
+                        </select>
+                    </div>
+                    <div style="margin:1rem 0;">
+                        <label style="display:block; margin-bottom:0.3rem; font-weight:600;">Примечание (опционально)</label>
+                        <textarea id="deNote" rows="2" placeholder="Полезная заметка" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--border);">${escapeHtml(word.note || '')}</textarea>
+                    </div>
+                    <div id="deErr" style="color:#ef4444; margin-bottom:0.5rem;"></div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn" id="deSave">💾 Сохранить</button>
+                        <button class="btn outline" id="deCancel">Отмена</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(backdrop);
+
+            const errDiv = backdrop.querySelector('#deErr');
+            const topicSelect = backdrop.querySelector('#deTopic');
+            const topicNew = backdrop.querySelector('#deTopicNew');
+            topicSelect.onchange = () => { topicNew.style.display = topicSelect.value === '__new__' ? 'block' : 'none'; };
+
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#deCancel').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+
+            backdrop.querySelector('#deSave').onclick = async () => {
+                const en = backdrop.querySelector('#deEn').value.trim();
+                const ru = backdrop.querySelector('#deRu').value.trim();
+                let topic = topicSelect.value;
+                if (topic === '__new__') {
+                    topic = topicNew.value.trim();
+                    if (!topic) { errDiv.textContent = 'Введите название новой темы'; return; }
+                } else if (!topic) { errDiv.textContent = 'Выберите тему'; return; }
+                if (!en) { errDiv.textContent = 'Введите английское слово'; return; }
+                if (!ru) { errDiv.textContent = 'Введите перевод'; return; }
+
+                // Проверка дубликатов (кроме самого редактируемого слова)
+                const dup = allDictionary().find(w =>
+                    w._serverKey !== word._serverKey &&
+                    String(w.en).trim().toLowerCase() === en.toLowerCase() &&
+                    String(w.ru).trim().toLowerCase() === ru.toLowerCase()
+                );
+                if (dup) { errDiv.textContent = '⛔ Такое слово уже есть в словаре!'; return; }
+
+                const data = {
+                    en, ru, topic,
+                    level: backdrop.querySelector('#deLevel').value,
+                    trans: backdrop.querySelector('#deTrans').value.trim(),
+                    voice: backdrop.querySelector('#deVoice').value,
+                    note: backdrop.querySelector('#deNote').value.trim(),
+                    createdAt: word.createdAt || Date.now()
+                };
+                try {
+                    await update(ref(db, `teachers/${teacherId}/dictionary/${word._serverKey}`), data);
+                    backdrop.remove();
+                    renderDictionaryTab();
+                } catch (e) { errDiv.textContent = 'Ошибка сохранения: ' + e.message; }
+            };
+        }
+
+        // ── Массовое назначение тем/уровней ученику ──────────
+        function showMassAssignModal() {
+            if (!dictStudentId) { alert('Сначала выберите ученика в списке выше'); return; }
+            const topics = {};
+            serverWords.forEach(w => {
+                const t = w.topic || 'Без темы';
+                (topics[t] = topics[t] || []).push(w);
+            });
+            const topicNames = Object.keys(topics).sort((a, b) => a.localeCompare(b, 'ru'));
+
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `
+                <div class="modal-content" style="max-width:520px;">
+                    <button class="modal-close">&times;</button>
+                    <h3>⚡ Массовое добавление</h3>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+                        Отметьте темы (и при желании уровни) — слова будут добавлены ученику целиком.
+                    </p>
+                    <div style="max-height:360px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; padding:0.8rem;">
+                        ${topicNames.map(t => {
+                            const words = topics[t];
+                            const levels = [...new Set(words.map(w => w.level))].sort();
+                            return `
+                            <div style="padding:0.5rem 0; border-bottom:1px solid var(--border);">
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600;">
+                                    <input type="checkbox" class="mass-topic" data-topic="${escapeHtml(t)}" checked>
+                                    ${escapeHtml(t)}
+                                    <span style="font-weight:400; color:var(--text-secondary); font-size:0.8rem;">(${words.length})</span>
+                                </label>
+                                <div style="margin-left:2rem; margin-top:0.3rem; display:flex; align-items:center; gap:0.4rem;">
+                                    <label style="font-size:0.8rem; color:var(--text-secondary);">Уровень:</label>
+                                    <select class="mass-level" data-topic="${escapeHtml(t)}" style="padding:0.25rem; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.8rem;">
+                                        <option value="__all__">Все уровни</option>
+                                        ${levels.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div id="massErr" style="color:#ef4444; margin-top:0.6rem; font-size:0.85rem;"></div>
+                    <div style="display:flex; gap:0.5rem; margin-top:1rem; align-items:center;">
+                        <button class="btn" id="massApply">✅ Добавить выбранное</button>
+                        <button class="btn outline" id="massCancel">Отмена</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(backdrop);
+
+            const errDiv = backdrop.querySelector('#massErr');
+            backdrop.querySelector('.modal-close').onclick = () => backdrop.remove();
+            backdrop.querySelector('#massCancel').onclick = () => backdrop.remove();
+            backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+
+            backdrop.querySelector('#massApply').onclick = async () => {
+                // Собираем выбранные темы и уровни
+                const selected = [];
+                backdrop.querySelectorAll('.mass-topic:checked').forEach(cb => {
+                    const topic = cb.dataset.topic;
+                    const levelSel = backdrop.querySelector(`.mass-level[data-topic="${CSS.escape(topic)}"]`);
+                    selected.push({ topic, level: levelSel ? levelSel.value : '__all__' });
+                });
+                if (!selected.length) { errDiv.textContent = 'Выберите хотя бы одну тему'; return; }
+
+                const btn = backdrop.querySelector('#massApply');
+                btn.disabled = true;
+                btn.textContent = '⏳ Добавляю...';
+                let added = 0, skipped = 0;
+                try {
+                    for (const s of selected) {
+                        // Слова этой темы (с учётом уровня)
+                        let words = serverWords.filter(w => (w.topic || 'Без темы') === s.topic);
+                        if (s.level !== '__all__') words = words.filter(w => w.level === s.level);
+                        for (const w of words) {
+                            const wRef = ref(db, `teachers/${teacherId}/dictionary/${w._serverKey}`);
+                            const wSnap = await get(wRef);
+                            const wData = wSnap.val() || {};
+                            let assigned = Array.isArray(wData.assignedTo) ? wData.assignedTo.slice() : [];
+                            if (!assigned.includes(dictStudentId)) { assigned.push(dictStudentId); added++; }
+                            else skipped++;
+                            await update(wRef, { assignedTo: assigned });
+                        }
+                    }
+                    backdrop.remove();
+                    renderDictionaryTab();
+                    alert(`✅ Готово! Добавлено слов: ${added}${skipped ? ' (уже было: ' + skipped + ')' : ''}`);
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.textContent = '✅ Добавить выбранное';
+                    errDiv.textContent = 'Ошибка: ' + e.message;
+                }
+            };
+        }
+
+            // ── Словарь ученика ── встроенный режим реализован внутри renderDictionaryTab() ──
+        // (старый модальный вариант удалён)
 
         // Image resize functionality
         document.addEventListener('mousedown', function(e) {
